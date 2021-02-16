@@ -15,7 +15,7 @@ obs is used for actually streaming to the rtmp server
 nginx is used to actually serve the created m3u8 playlist
 
 ```
-ffmpeg -listen 1 -i 'rtmp://0.0.0.0:6645/stream/test12345' -c:v copy -c:a copy  -flags +cgop -g 60 -hls_time 1 -hls_list_size 20 -hls_allow_cache 1 -hls_flags delete_segments stream.m3u8; \cp -f done.m3u8 stream.m3u8;
+ffmpeg -listen 1 -i 'rtmp://0.0.0.0:6645/stream/test12345' -c:v copy -c:a copy  -flags +cgop -g 60 -lhls 1 -hls_time 2 -hls_list_size 1 -hls_allow_cache 1 -hls_flags delete_segments -flush_packets 1 stream.m3u8; \cp -f done.m3u8 stream.m3u8;
 ```
 
 0.0.0.0 means it's listening on all ipv4 addresses, change this to whatever your ip is
