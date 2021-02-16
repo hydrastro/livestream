@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>my own little twitch</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="hls.js"></script>
+</head>
+<body>
+	<div class="header">
+    <div class="headercntns">
+      <span>BasedTwitch <a href="https://gitfap.de/-/snippets/10">(More info)</a></span>
+      <span>Livestream</span>
+    </div>
+	</div>
+	<div class="col-container">
+    <div class="col one">
+      <video autoplay muted controls id="video"></video>
+    </div>
+	<div class="col two">
+		<iframe width="560" height="315" frameborder="0" allowfullscreen src="https://webirc.n0xy.net/?nick=Anonymous&join=%23w0bm&username=Anonymous"></iframe>
+	</div>
+  </div>
+</body>
+<script>
+  var video = document.getElementById('video');
+  var videoSrc = 'stream.m3u8';
+  if (Hls.isSupported()) {
+    var hls = new Hls();
+    hls.loadSource(videoSrc);
+    hls.attachMedia(video);
+  }
+  else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = videoSrc;
+  }
+</script>
+</html>
