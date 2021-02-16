@@ -2,9 +2,9 @@
 
 See Twitch and YouTube cry
 
-You will need `ffmpeg` and `obs` and preferably a server where you have shell access to and on that server a webserver like `nginx`
+You will need `ffmpeg` and `obs-studio` and preferably a server where you have shell access to and on that server a webserver like `nginx`
 
-on ubuntu `sudo apt install ffmpeg obs nginx` find if the package is available for your distro or compile it yourself
+on ubuntu `sudo apt install ffmpeg obs-studio nginx` find if the package is available for your distro or compile it yourself
 
 This also werks on Windows and Android!
 
