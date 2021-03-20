@@ -1,6 +1,7 @@
 #!/bin/bash
 #ffmpeg stream script
 #made for public domain use by noxy
+#Thanks to spaghetti for giving me the ffmpeg line and inspiring me to actually put this all together a bit better for myself and for others! Thanks man!
 #FUCK EVILCORPS
 IP="[::]/0.0.0.0"   #Change me!
 PORT="6645"
