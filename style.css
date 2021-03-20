@@ -4,6 +4,11 @@
     --highlight-bg-color: #0d0d0d !important;
 }
 
+h2 {
+    margin: 0;
+}
+
+
 #nick {
     background: #1c1c1c !important;
     color: white !important;
