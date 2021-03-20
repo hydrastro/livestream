@@ -2,6 +2,8 @@
 
 See Twitch and YouTube cry, no mercy for evil corps!
 
+<img src="https://gitfap.de/noxy/livestream/-/raw/master/Screenshot_2021-03-20_f0ck_streams_.png">
+
 # TL;DR
 Pull this repo, point your webserver to the location of the pulled files, modify `stream.bash` to your liking, copy the service file if desired to your systemd folder, start and enable it, stream with obs to your own rtmp server!
 
@@ -134,7 +136,7 @@ I tested it with [n0xy.net](https://n0xy.net) _Does not offer a dark theme, cann
 `<iframe width="560" height="315" frameborder="0" allowfullscreen src="https://webirc.n0xy.net/?nick=BasedAnon&join=%23livestream&username=BasedAnon"></iframe>`
 
 # OBS configuration
-Now you need to setup your OBS to actually make use of you cool streaming server.
+Now you need to setup your OBS to actually make use of your cool streaming server.
 
 Make a new profile, name it BASED or something like that
 
