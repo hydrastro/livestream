@@ -1,29 +1,109 @@
-# How to stream with ffmpeg
+# Easy self hosted livestream using ffmpeg
 
-See Twitch and YouTube cry
+See Twitch and YouTube cry, no mercy for evil corps!
 
-You will need `ffmpeg` and `obs-studio` and preferably a server where you have shell access to and on that server a webserver like `nginx`
+# TL;DR
+Pull this repo, point your webserver to the location of the pulled files, modify `stream.bash` to your liking, copy the service file if desired to your systemd folder, start and enable it, stream with obs to your own rtmp server!
 
-on ubuntu `sudo apt install ffmpeg obs-studio nginx` find if the package is available for your distro or compile it yourself
+# Requirements
+Required tools: `ffmpeg` `obs-studio` & `nginx`
 
-This also werks on Windows and Android!
+# Packages
 
-ffmpeg is used to spawn the rtmp server and process your video input
+- Ubunt/Debian:   `apt install ffmpeg obs-studio nginx`
 
-obs is used for actually streaming to the rtmp server
+- Arch Linux:     `pacman -S ffmpeg obs-studio nginx`
 
-nginx is used to actually serve the created m3u8 playlist
+# Setting up NGINX
+
+**You can skip this if you are already familiar with NGINX or other webservers.**
+
+`systemctl start nginx && systemctl enable nginx`
+
+Create a directory that acts as the root for your stream, in this case I use `/srv/stream` you are free to choose whatever path you like!
+
+`mkdir /srv/stream`
+This directory will be owned by root, make sure to correct this and change the owner to the user your nginx runs with, in this example `http`
+
+`chown -R http:http /srv/stream/`
+
+Next you want to add a new server block to your `nginx.conf` _located at `/etc/nginx`_
+
+It could be something like this
 
 ```
-ffmpeg -listen 1 -i 'rtmp://0.0.0.0:6645/stream/test12345' -c:v copy -c:a copy  -flags +cgop -g 60 -lhls 1 -hls_time 2 -hls_list_size 1 -hls_allow_cache 1 -hls_flags delete_segments -flush_packets 1 stream.m3u8; \cp -f done.m3u8 stream.m3u8;
+server {
+    listen [::]:80;             #   Listens on port 80 for IPV6
+    listen 80;                  #   Listens on port 80 for IPV4
+    server_name localhost;      #   This is your server name, can be your domain for example
+    index index.html;           #   Nginx will look by default in /srv/stream for the file index.html
+    root /srv/stream;           #   Your webroot
+
+    location /vods {
+        #If you want to make your recordings public and accessible by anyone
+        autoindex on;
+    }
+}
+```
+Test your config with
+
+`nginx -t`
+
+If you can read this you are mostly good to go!
+```
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
 ```
 
-0.0.0.0 means it's listening on all ipv4 addresses, change this to whatever your ip is
+Finally reload the config
+`nginx -s reload`
 
-This command does most of the magic it spawns the rtmp server and waits for user input
+Your NGINX should now listen on port 80 and returning a 404 page
 
-the cp command is useful if you want to display a offline video for example if you are not streaming
+Check http://localhost in your browser or via `curl`
 
+`curl http://localhost` _This should simply return 404_
+
+Now move all the files in this repo to your webroot and visit your site again.
+
+# Starting the ffmpeg RTMP server
+There are two ways on how to do it:
+- execute `stream.bash` by hand everytime you want to stream
+- use the `stream.service` file and have it run in the background at all times so you don't have to manually restart it once you end your stream (very useful tbh)
+
+#### The by hand way
+_this needs to be done everytime you want to stream!_
+
+```
+$ bash stream.bash
+```
+
+#### The based way
+First: make sure to modify the paths in the service to match your paths, otherwise it will not work!
+```
+$ cp stream.service /etc/systemd/system/stream.service
+$ systemctl start stream
+$ systemctl status stream
+#If you want to have it automatically started everytime you boot do:
+$ systemctl enable stram
+```
+
+# The stream.bash file
+This file is the core, it spawns a rtmp server that awaits your input
+
+Change the `IP` and `STREAMKEY` variables to your liking, in my example it's `[::]` which means listen on all ipv6 addresses, you can enter `0.0.0.0` for example `0.0.0.0` means it's listening on all ipv4 addresses or change this to whatever your public ip is.
+
+`PORT` is the port ffmpeg will listen to, you can freely change it or keep at the default value
+
+The `STREAMKEY` variable can be treated as your personal access token to this endpoint, make it hard to guess to increase security
+
+`FPS` defines the frames per second your stream runs at, should match the fps you set up in your obs
+
+There are two ways on how you can stream, one is without recording your stream and the other is with recording your stream.
+
+If you choose to record your stream make a directory in your webroot called `vods` and make sure it's also owned by `http`
+
+# Offline video
 To make a video for when your stream is offline do the following
 
 `ffmpeg -i file.{png,webm/mp4 whatever} -t 5 blah.ts`
@@ -45,6 +125,29 @@ blah.ts
 
 This will be displayed everytime your stream is not online
 
-If you want to have a chat included on your based twitch you can embed any webirc or webchat you want, it's up to you! In my example I use the n0xy.net webirc but you are free to modify it to your needs or use n0xy.net
+# Webchat
 
-That's basically it! Fuck Twitch and YouTube and any other commercial rule cuck website, be your own streaming service!
+If you want to have a chat included on your **Based streaming service** you can embed any webirc or webchat you want, it's up to you!
+
+I tested it with [n0xy.net](https://n0xy.net) _Does not offer a dark theme, cannot really recommend_
+
+`<iframe width="560" height="315" frameborder="0" allowfullscreen src="https://webirc.n0xy.net/?nick=BasedAnon&join=%23livestream&username=BasedAnon"></iframe>`
+
+# OBS configuration
+Now you need to setup your OBS to actually make use of you cool streaming server.
+
+Make a new profile, name it BASED or something like that
+
+Go to `Settings -> Stream -> Service -> Custom`
+
+In the Server field enter: `rtmp://<IP>:<PORT>/stream/<STREAMKEY>`
+
+Leave the Stream Key field blank
+
+Hit Apply
+
+**_Start Streaming_**
+
+That's basically it! Fuck Twitch and YouTube and any other commercial rule cuck website, be your own streaming service! Make the rules yourself, stream whatever the fuck you want!
+
+Enjoy!
