@@ -153,3 +153,12 @@ Hit Apply
 That's basically it! Fuck Twitch and YouTube and any other commercial rule cuck website, be your own streaming service! Make the rules yourself, stream whatever the fuck you want!
 
 Enjoy!
+
+# use ffmpeg to stream to ffmpeg
+You can stream any file supported by ffmpeg to ffmpeg
+
+On your pc you could do something like this
+
+`ffmpeg -i my-total-legit-holiday-video.mkv -f flv rtmp://<IP>:<PORT>/stream/<STREAMKEY>`
+
+:^)
