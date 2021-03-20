@@ -1,0 +1,11 @@
+[Unit]
+Description=ffmpeg stream
+After=syslog.target network.target
+
+[Service]
+WorkingDirectory=/srv/f0ck.it/stream/
+ExecStart=/usr/bin/bash stream.bash
+Restart=always
+User=http
+[Install]
+WantedBy=multi-user.target
