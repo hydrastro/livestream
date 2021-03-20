@@ -1,8 +1,20 @@
-		.col-container {
+:root {
+    --window-bg-color: #000 !important;
+    --body-color: #fff !important;
+    --highlight-bg-color: #0d0d0d !important;
+}
 
-        display: grid;
-    	grid-template-columns: 1fr 0.34fr;
-color: black;
+#nick {
+    background: #1c1c1c !important;
+    color: white !important;
+}
+
+.col-container {
+/*    display: grid;
+    grid-template-columns: 1fr 0.34fr;*/
+	display: flex;
+	justify-content: center;
+    color: black;
 }
 
 .col {
@@ -22,21 +34,23 @@ color: black;
 iframe {
     max-height: 100%;
     min-height: 100%;
-          width: 100%    !important;
-  height: auto   !important;
+    width: 100%    !important;
+    height: auto   !important;
 
 }
 
 body {
     color: white;
-    background: #007e7d;
+    background: #242424;
     font-family: monospace;
 }
 
 video {
-      width: 100%    !important;
-  height: auto   !important;
-}
+	
+    width: 100%    !important;
+    height: auto   !important;
+max-width: 100vh;
+    }
 
 
   .cntnts {
@@ -73,14 +87,49 @@ video {
 border-top: outset 1px black;
 background: white;
   }
+
+  .headercntns {
+    width: 100%;
+    overflow: hidden;
+  }
+}
+
+.header {
+  width: 100%;
 }
 
 .headercntns {
-    width: max-content;
-    background: #f2f2f2;
-    color: black;
-    padding: 5px;
-    border-top: outset 1px black;
-border-left: outset 1px black;
-border-right: outset 1px black;
+    color: white;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    text-align: center;
+    background: #151515;
+}
+
+
+.embed-responsive {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+}
+
+.embed-responsive::before {
+    display: block;
+    content: "";
+}
+
+.embed-responsive-16by9::before {
+    padding-top: 56.25%;
+}
+
+.embed-responsive .embed-responsive-item, .embed-responsive iframe, .embed-responsive embed, .embed-responsive object, .embed-responsive video {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
 }
