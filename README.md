@@ -69,7 +69,7 @@ Check http://localhost in your browser or via `curl`
 Now move all the files in this repo to your webroot and visit your site again.
 
 # Want HTTPS?
-Get [Certbot](https://certbot.eff.org/instructions) follow instructions
+Get [Certbot](https://certbot.eff.org/instructions) and follow the instructions
 
 After successful installation do:
 
@@ -96,7 +96,7 @@ $ cp stream.service /etc/systemd/system/stream.service
 $ systemctl start stream
 $ systemctl status stream
 #If you want to have it automatically started everytime you boot do:
-$ systemctl enable stram
+$ systemctl enable stream
 ```
 
 # The stream.bash file
@@ -104,7 +104,7 @@ This file is the core, it spawns a rtmp server that awaits your input
 
 Change the `IP` and `STREAMKEY` variables to your liking, in my example it's `[::]` which means listen on all ipv6 addresses, you can enter `0.0.0.0` for example `0.0.0.0` means it's listening on all ipv4 addresses or change this to whatever your public ip is.
 
-`PORT` is the port ffmpeg will listen to, you can freely change it or keep at the default value
+`PORT` is the port ffmpeg will listen to, you can freely change it or keep the default value
 
 The `STREAMKEY` variable can be treated as your personal access token to this endpoint, make it hard to guess to increase security
 
