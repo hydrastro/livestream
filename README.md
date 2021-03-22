@@ -68,6 +68,15 @@ Check http://localhost in your browser or via `curl`
 
 Now move all the files in this repo to your webroot and visit your site again.
 
+# Want HTTPS?
+Get [Certbot](https://certbot.eff.org/instructions) follow instructions
+
+After successful installation do:
+
+`certbot --nginx`
+
+Select your domin, congrats you now have https
+
 # Starting the ffmpeg RTMP server
 There are two ways on how to do it:
 - execute `stream.bash` by hand everytime you want to stream
