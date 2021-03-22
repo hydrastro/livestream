@@ -1,25 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-        <title>f0ck streams!</title>
-  <link rel="stylesheet" type="text/css" href="style.css">
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <meta name="description" content="Welcome to my self hosted live stream, fuck all commercial livestream services, they all suck! be free and start self hosting!">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="hls.js"></script>
+    <title>f0ck streams!</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <link rel="icon" type="image/png" href="favicon.png" />
+        <meta name="description" content="Welcome to my self-hosted live stream, fuck all commercial livestream services, they all suck! Real men are self-hosted and not bound to anoth
+        mans service!">
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta property="og:image" content="/2021/03/605645dac363c.png"/>
+        <meta name="twitter:image" content="/2021/03/605645dac363c.png"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script src="hls.js"></script>
 </head>
 <body>
-        <div class="header">
+<div class="header">
     <div class="headercntns">
-      <h2>f0ck streams!</h2>
-      <span>Welcome to my self hosted livestream <a href="https://gitfap.de/noxy/livestream">(How it's made)</a></span><br>
+        <h2>f0ck streams!</h2>
+        <span>Welcome to my self hosted livestream <a href="https://gitfap.de/noxy/livestream">(How it's made)</a></span><br>
     </div>
-        </div>
-        <div class="col-container">
-      <video autoplay muted controls id="video"></video>
-  </div>
+</div>
+<div class="col-container">
+    <div class="nojs">
+        <noscript style="color: red;">hls playback needs js! <br><b>turn on javascript</b><br> or <a href="stream.m3u8">watch directly</a> in your prefered media player!</noscript>
+    </div>
+	<video autoplay muted controls id="video"></video>
+</div>
+<div class="links">
+    <a href="stream.m3u8">Direct Stream Link (For external players)</a> | <a href="vods" target="_blank">VODS</a>
+</div>
 </body>
-<script>
+<script type="text/javascript">
   var video = document.getElementById('video');
   var videoSrc = 'stream.m3u8';
   if (Hls.isSupported()) {
@@ -32,4 +42,3 @@
   }
 </script>
 </html>
-
