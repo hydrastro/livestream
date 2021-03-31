@@ -12,7 +12,7 @@ Required tools: `ffmpeg` `obs-studio` & `nginx`
 
 # Packages
 
-- Ubunt/Debian:   `apt install ffmpeg obs-studio nginx`
+- Ubuntu/Debian:   `apt install ffmpeg obs-studio nginx`
 
 - Arch Linux:     `pacman -S ffmpeg obs-studio nginx`
 
