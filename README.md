@@ -12,7 +12,7 @@ Required tools: `ffmpeg` `obs-studio` & `nginx`
 
 # Packages
 
-- Ubuntu/Debian:   `apt install ffmpeg obs-studio nginx`
+- Ubunt/Debian:   `apt install ffmpeg obs-studio nginx`
 
 - Arch Linux:     `pacman -S ffmpeg obs-studio nginx`
 
@@ -75,9 +75,25 @@ After successful installation do:
 
 `certbot --nginx`
 
-Select your domin, congrats you now have https
+Select your domain, congrats you now have https for your domain!
 
-# Starting the ffmpeg RTMP server
+# Also want to stream over rtmps?
+If you want to stream encrypted all you need to do in addition is to add a few lines to your `/etc/nginx/nginx.conf` **outside the http context!**
+
+My advice is to let the stream server only run on localhost 127.0.0.1 so only nginx makes connections to it unencrypted on the same server!
+```
+stream {
+    server {
+        listen 1935 ssl;
+        proxy_pass 127.0.0.1:6645;
+        proxy_buffer_size 32k;
+        ssl_certificate /etc/letsencrypt/live/your.domain.tld/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/your.domain.tld/privkey.pem;
+    }
+}
+```
+
+# Starting the ffmpeg RTMP(s) server
 There are two ways on how to do it:
 - execute `stream.bash` by hand everytime you want to stream
 - use the `stream.service` file and have it run in the background at all times so you don't have to manually restart it once you end your stream (very useful tbh)
@@ -103,6 +119,8 @@ $ systemctl enable stream
 This file is the core, it spawns a rtmp server that awaits your input
 
 Change the `IP` and `STREAMKEY` variables to your liking, in my example it's `[::]` which means listen on all ipv6 addresses, you can enter `0.0.0.0` for example `0.0.0.0` means it's listening on all ipv4 addresses or change this to whatever your public ip is.
+
+I suggest to use `127.0.0.1` if you plan on streaming via rtmps!
 
 `PORT` is the port ffmpeg will listen to, you can freely change it or keep the default value
 
@@ -151,7 +169,13 @@ Make a new profile, name it BASED or something like that
 
 Go to `Settings -> Stream -> Service -> Custom`
 
+## If you have a rtmp configuration (unencrypted)
+
 In the Server field enter: `rtmp://<IP>:<PORT>/stream/<STREAMKEY>`
+
+## If you have it via rtmps
+
+In the server field enter: `rtmps://your.domain.tld:1935/stream/<STREAMKEY>`
 
 Leave the Stream Key field blank
 
@@ -168,6 +192,6 @@ You can stream any file supported by ffmpeg to ffmpeg
 
 On your pc you could do something like this
 
-`ffmpeg -i my-total-legit-holiday-video.mkv -f flv rtmp://<IP>:<PORT>/stream/<STREAMKEY>`
+`ffmpeg -i my-total-legit-holiday-video.mkv -f flv rtmps://your.domain.tld:1935/stream/<STREAMKEY>`
 
 :^)
