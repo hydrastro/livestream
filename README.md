@@ -192,7 +192,8 @@ You can stream any file supported by ffmpeg to ffmpeg
 
 On your pc you could add this function to your `.bashrc` and use it like this:
 
-stream <file> <audio track id>
+stream `<file>` `<audio track id>`
+    
 `stream file.mp4 0`
 
 ```
