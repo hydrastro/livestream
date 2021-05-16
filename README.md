@@ -190,8 +190,17 @@ Enjoy!
 # use ffmpeg to stream to ffmpeg
 You can stream any file supported by ffmpeg to ffmpeg
 
-On your pc you could do something like this
+On your pc you could add this function to your `.bashrc` and use it like this:
 
-`ffmpeg -i my-total-legit-holiday-video.mkv -f flv rtmps://your.domain.tld:1935/stream/<STREAMKEY>`
+stream <file> <audio track id>
+`stream file.mp4 0`
 
+```
+function stream() {
+        ffmpeg -re -i $1 -c:v libx264 -profile:v main -preset:v medium \
+                -r 30 -g 60 -keyint_min 60 -sc_threshold 0 -b:v 2500k -maxrate 2500k -map 0:v:0 \
+                -bufsize 6000k -pix_fmt yuv420p -g 60 -c:a aac -b:a 160k -ac 2 -map 0:a:$2 \
+                -ar 44100 -f flv rtmps://<server>
+}
+```
 :^)
