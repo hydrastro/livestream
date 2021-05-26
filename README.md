@@ -204,4 +204,17 @@ function stream() {
                 -ar 44100 -f flv rtmps://<server>
 }
 ```
+
+Assuming the file has subtitles embedded
+
+```
+function streamanime() {
+        #usage stramanime "file.mkv" 0[subitle track id] 0[audio track id]
+        ffmpeg -i $1 -map 0:s:$2 $1.ass        
+        ffmpeg -re -i "$1" -c:v libx264 -profile:v main -preset:v medium \
+                -r 30 -g 60 -keyint_min 60 -sc_threshold 0 -b:v 2500k -maxrate 2500k -map 0:v:0 -vf "ass='$1.ass'" \           
+                -bufsize 6000k -pix_fmt yuv420p -g 60 -c:a aac -b:a 160k -ac 2 -map 0:a:$3 \
+                -ar 44100 -f flv rtmps://<server>
+}
+```
 :^)
