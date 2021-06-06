@@ -209,7 +209,7 @@ Assuming the file has subtitles embedded
 
 ```
 function streamanime() {
-        #usage stramanime "file.mkv" 0[subitle track id] 0[audio track id]
+        #usage streamanime "file.mkv" 0[subitle track id] 0[audio track id]
         ffmpeg -i $1 -map 0:s:$2 $1.ass        
         ffmpeg -re -i "$1" -c:v libx264 -profile:v main -preset:v medium \
                 -r 30 -g 60 -keyint_min 60 -sc_threshold 0 -b:v 2500k -maxrate 2500k -map 0:v:0 -vf "ass='$1.ass'" \           
