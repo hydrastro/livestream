@@ -154,7 +154,7 @@ blah.ts
 
 This will be displayed everytime your stream is not online
 
-# Webchat
+# Webchat (Currently not supported in layout)
 
 If you want to have a chat included on your **Based streaming service** you can embed any webirc or webchat you want, it's up to you!
 
@@ -218,3 +218,5 @@ function streamanime() {
 }
 ```
 :^)
+
+Font used: https://github.com/source-foundry/Hack
