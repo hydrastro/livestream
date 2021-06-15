@@ -2,7 +2,7 @@
 
 See Twitch and YouTube cry, no mercy for evil corps!
 
-<img src="https://gitfap.de/noxy/livestream/-/raw/master/Screenshot_2021-03-20_f0ck_streams_.png">
+<img src="https://raw.githubusercontent.com/ottersarecool/livestream/master/2021-06-15_16-18.png">
 
 # TL;DR
 Pull this repo, point your webserver to the location of the pulled files, modify `stream.bash` to your liking, copy the service file if desired to your systemd folder, start and enable it, stream with obs to your own rtmp server!
