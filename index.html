@@ -2,31 +2,30 @@
 <html>
 <head>
     <title>f0ck streams!</title>
+        <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="style.css">
-        <link rel="icon" type="image/png" href="favicon.png" />
-        <meta name="description" content="Welcome to my self-hosted live stream, fuck all commercial livestream services, they all suck! Real men are self-hosted and not bound to anoth
+        <link rel="icon" type="image/png" href="BqxDVTNinLuoRgRNRYhSSqAc.png" />
+        <meta name="description" content="Welcome to my self-hosted live stream, fuck all commercial livestream services, they all suck! Real men are self-hosted and not bound to another
         mans service!">
         <meta name="twitter:card" content="summary_large_image" />
-        <meta property="og:image" content="/2021/03/605645dac363c.png"/>
-        <meta name="twitter:image" content="/2021/03/605645dac363c.png"/>
+        <meta property="og:image" content="BqxDVTNinLuoRgRNRYhSSqAc.png"/>
+        <meta name="twitter:image" content="BqxDVTNinLuoRgRNRYhSSqAc.png"/>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script src="hls.js"></script>
 </head>
 <body>
+<div class="wrapper">
 <div class="header">
     <div class="headercntns">
-        <h2>f0ck streams!</h2>
-        <span>Welcome to my self hosted livestream <a href="https://gitfap.de/noxy/livestream">(How it's made)</a></span><br>
+        <span class="brand">f0ck streams!</span> <span><a href="https://github.com/ottersarecool/livestream">Source Code</a></span> | <span><a href="stream.m3u8">Direct Link</a></span>
     </div>
 </div>
 <div class="col-container">
     <div class="nojs">
         <noscript style="color: red;">hls playback needs js! <br><b>turn on javascript</b><br> or <a href="stream.m3u8">watch directly</a> in your prefered media player!</noscript>
     </div>
-	<video autoplay muted controls id="video"></video>
+	<video autoplay muted controls loop id="video"></video>
 </div>
-<div class="links">
-    <a href="stream.m3u8">Direct Stream Link (For external players)</a> | <a href="vods" target="_blank">VODS</a>
 </div>
 </body>
 <script type="text/javascript">
@@ -39,6 +38,7 @@
   }
   else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = videoSrc;
+    //video.loop = true;
   }
 </script>
 </html>
