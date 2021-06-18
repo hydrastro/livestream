@@ -156,11 +156,7 @@ This will be displayed everytime your stream is not online
 
 # Webchat (Currently not supported in layout)
 
-If you want to have a chat included on your **Based streaming service** you can embed any webirc or webchat you want, it's up to you!
-
-I tested it with [n0xy.net](https://n0xy.net) _Does not offer a dark theme, cannot really recommend_
-
-`<iframe width="560" height="315" frameborder="0" allowfullscreen src="https://webirc.n0xy.net/?nick=BasedAnon&join=%23livestream&username=BasedAnon"></iframe>`
+https://github.com/ottersarecool/websocket-livechat
 
 # OBS configuration
 Now you need to setup your OBS to actually make use of your cool streaming server.
