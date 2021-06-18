@@ -154,7 +154,7 @@ blah.ts
 
 This will be displayed everytime your stream is not online
 
-# Webchat (Currently not supported in layout)
+# Webchat
 
 https://github.com/ottersarecool/websocket-livechat
 
