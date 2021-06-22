@@ -8,17 +8,125 @@
   font-weight: 400;
   font-style: normal;
 }
-
 h2 {
   margin: 0;
 }
-
-.col-container {
-  display: flex;
-  justify-content: center;
-  color: black;
+:root {
+  color-scheme: dark;
 }
-
+html, body {
+  overflow: hidden;
+}
+@media (max-width: 960px)  {
+  .col-container {
+  grid-template-columns: unset !important;
+  grid-template-rows: 1fr 1fr;
+  background: black;
+  }
+  video {
+      height: auto !important;
+      align-self: center;
+  }
+  form > div#chat {
+      width: 100%;
+  }
+}
+.col-container {
+  display: grid;
+  color: black;
+  grid-template-columns: 1fr auto;
+  height: calc(100vh - 25px);
+}
+.chat-input {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  background: #161618;
+}
+input.messageInput {
+  border-radius: 0;
+  border: 0;
+  background: #161618;
+  color: white;
+  line-height: 3;
+  border-right: 1px solid #212121;
+  margin-left: 10px;
+}
+.namecontainer {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  background: black;
+  border-bottom: 2px solid black;
+}
+.namecontainer > span {
+  display: flex;
+  align-self: center;
+  color: #ffcc35;
+  position: relative;
+  margin-left: 10px;
+}
+input.messageInput:focus-visible, input.nickname:focus-visible {
+  outline: 0;
+}
+button.messageButton {
+  border: 0;
+  border-radius: 0;
+  background: #161618;
+  color: white;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+.messageButton:hover {
+  transition: .3s ease-in-out;
+  cursor: pointer;
+  opacity: 0.8;
+  background: #282826;
+}
+form {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+div#chat {
+  overflow-y: scroll;
+  background: #212121;
+  width: 420px;
+  overflow-wrap: break-word;
+  color: white;
+  flex-grow: 1;
+  height: 0;
+}
+#chat > p, pre {
+  padding: 5px;
+  background: #131515;
+  margin: 5px;
+  white-space: -moz-pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+#chat > p:empty, pre:empty {
+  display: none;
+}
+input#name {
+  background: black;
+  border: 0;
+  display: flex;
+  width: inherit;
+  color: white;
+}
+input.nickname {
+  width: auto;
+  border-radius: 0;
+  background: #212121;
+  border: 0;
+  color: white;
+  margin-left: 10px;
+}
+.chat-wrapper {
+  width: 100%;
+  display: flex;
+}
 body {
   color: white;
   background: #110c13;
@@ -26,7 +134,6 @@ body {
   font-family: 'Hack';
   font-size: 12px;
 }
-
 .brand {
   text-align: left;
   background: #c6138861;
@@ -34,35 +141,33 @@ body {
   color: #dbdbdb;
   text-transform: uppercase;
 }
-
 video {
   width: 100% !important;
   height: calc(100vh - 25px);
   display: flex;
   align-items: center;
   background: black;
+  height: 100% !important;
 }
-
+.video-wrapper {
+  display: flex;
+  justify-content: center;
+}
 .cntnts {
   text-align: left;
 }
-
 a {
   color: #1fb2b0;
 }
-
-
 .header {
   width: 100%;
 }
-
 .headercntns {
   color: white;
   padding-bottom: 5px;
   padding-top: 5px;
   background: #000;
 }
-
 .nojs {
   position: absolute;
   color: red;
