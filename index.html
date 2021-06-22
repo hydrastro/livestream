@@ -24,7 +24,23 @@
     <div class="nojs">
         <noscript style="color: red;">hls playback needs js! <br><b>turn on javascript</b><br> or <a href="stream.m3u8">watch directly</a> in your prefered media player!</noscript>
     </div>
-	<video autoplay muted controls loop id="video"></video>
+    <div class="video-wrapper">
+	    <video autoplay muted controls loop id="video"></video>
+    </div>
+  <div class="chat-wrapper">
+    <form name="lulform">
+      <div class="namecontainer">
+        <span>Name: </span>
+        <input class="nickname" type="text" placeholder="name" required />
+      </div>
+      <div id="chat"></div>
+      <div class="chat-input">
+        <input class="messageInput" type="text" placeholder="message" required />
+        <button class="messageButton" type="submit">Send</button>
+      </div>
+    </form>
+  <script src="client.js"></script>
+    </div>
 </div>
 </div>
 </body>
@@ -42,3 +58,4 @@
   }
 </script>
 </html>
+
