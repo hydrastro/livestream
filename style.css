@@ -30,6 +30,13 @@ html, body {
   form > div#chat {
       width: 100%;
   }
+
+  .chat > iframe {
+    width: 100% !important;
+  }
+}
+.chat > iframe {
+  width: 420px;
 }
 .col-container {
   display: grid;
@@ -136,7 +143,7 @@ body {
 }
 .brand {
   text-align: left;
-  background: #c6138861;
+  background: #55555561;
   padding: 5px;
   color: #dbdbdb;
   text-transform: uppercase;
@@ -147,7 +154,8 @@ video {
   display: flex;
   align-items: center;
   background: black;
-  height: 100% !important;
+  /* height: 100% !important; */
+  max-height: calc(100vh - 25px);
 }
 .video-wrapper {
   display: flex;
@@ -166,7 +174,7 @@ a {
   color: white;
   padding-bottom: 5px;
   padding-top: 5px;
-  background: #000;
+  background: #282628;
 }
 .nojs {
   position: absolute;
