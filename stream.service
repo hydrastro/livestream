@@ -3,9 +3,9 @@ Description=ffmpeg stream
 After=syslog.target network.target
 
 [Service]
-WorkingDirectory=/srv/stream/
-ExecStart=/usr/bin/bash stream.bash
+WorkingDirectory=/opt/livestream/
+ExecStart=/usr/bin/bash livestream.sh
 Restart=always
-User=http
+User=www-data
 [Install]
 WantedBy=multi-user.target
