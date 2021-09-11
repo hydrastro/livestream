@@ -1,5 +1,5 @@
 [Unit]
-Description=ffmpeg stream
+Description=ffmpeg livestream
 After=syslog.target network.target
 
 [Service]
