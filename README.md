@@ -1,7 +1,7 @@
 # livestream
 Livestream radio made easy with ffmpeg, thanks to @ottersarecool and noxy!
 
-# Dependencies
+## Dependencies
 This scripts has the following dependencies:
 - `ffmpeg`
 - `nginx`
