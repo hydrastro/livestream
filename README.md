@@ -25,9 +25,14 @@ This is left as an exercise for the user.
 
 ### Offline video
 To create a video that will be displayed everytime your stream is offline, you
-can use the following command:
+can use the following commands.
+For videos:
 ```shell
-ffmpeg -i INPUTFILE -t 5 -y offline.ts
+ffmpeg -i VIDEO -c:v libx264 -t 5 -pix_fmt yuv420p offline.ts 
+```
+For images:
+```shell
+ffmpeg -loop 1 -i IMAGE -c:v libx264 -t 5 -pix_fmt yuv420p offline.ts 
 ```
 
 ## Usage

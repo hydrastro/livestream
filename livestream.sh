@@ -8,10 +8,11 @@ VIDEO_SOURCE="./video.mp4"
 FONT_FILE="./fonts/FSEX302.ttf"
 TEXT_PREFIX="Now playing: "
 TEXT_SPEED="1"
-TEXT_SIZE="20"
+TEXT_SIZE="18"
 TEXT_BOX_COLOR="black@0.5"
+TEXT_COLOR="white@0.8"
 TEXT_SOURCE="./text.txt"
-TEXT_BORDER_H="40"
+TEXT_BORDER_H="36"
 QUALITY="superfast"
 VIDEO_BITRATE="1500k"
 AUDIO_BITRATE="128k"
@@ -31,8 +32,9 @@ livestream_send() {
         -vf "drawbox=x=0:y=ih-${TEXT_BORDER_H}:color=${TEXT_BOX_COLOR}:        \
             width=iw:height=${TEXT_BORDER_H}:t=fill,                           \
             drawtext=fontfile=${FONT_FILE}:fontsize=${TEXT_SIZE}:              \
-            textfile=${TEXT_SOURCE}:reload=1:fontcolor=white@0.8:              \
-            x=(mod(2*n\,w+tw)-tw):y=h-line_h-10"                               \
+            textfile=${TEXT_SOURCE}:reload=1:fontcolor=${TEXT_COLOR}:          \
+            x=(mod(2*n\,w+tw)-tw):y=h-line_h-10,                               \
+            pad=ceil(iw/2)*2:ceil(ih/2)*2"                                     \
         -vcodec libx264                                                        \
         -pix_fmt yuv420p                                                       \
         -preset ${QUALITY}                                                     \
@@ -48,7 +50,6 @@ livestream_send() {
         -bufsize 512k                                                          \
         -f flv "${RTMP_SERVER}"
 }
-#        -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" \
 
 livestream_listen() {
     ffmpeg                                                                     \
