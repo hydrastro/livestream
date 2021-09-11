@@ -46,7 +46,7 @@ livestream_send() {
         -threads 6                                                             \
         -qscale:v 3                                                            \
         -b:a ${AUDIO_BITRATE}                                                  \
-        -flush_packets 0 \
+        -flush_packets 0                                                       \
         -bufsize 512k                                                          \
         -f flv "${RTMP_SERVER}"
 }
@@ -121,7 +121,6 @@ livestream_load_music() {
 
 livestream_quit() {
     for pid in "${PIDS[@]}"; do
-        read -p "killing someone"
         kill -0 "$pid" && kill "$pid"
     done
 }
