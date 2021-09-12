@@ -51,7 +51,7 @@ function livestream_send() {
         -b:a ${AUDIO_BITRATE}                                                  \
         -flush_packets 0                                                       \
         -bufsize 512k                                                          \
-        -f flv "${RTMP_SERVER}"
+        -f flv "${RTMP_SERVER}" & PIDS+=("$!")
 }
 
 function livestream_listen() {
@@ -70,8 +70,8 @@ function livestream_listen() {
         -hls_list_size 5                                                       \
         -hls_allow_cache 1                                                     \
         -hls_flags delete_segments                                             \
-        -flush_packets 1 stream.m3u8;                                          \
-    cp -f done.m3u8 stream.m3u8;
+        -flush_packets 1 stream.m3u8 & PIDS+=("$!")
+    cp -f done.m3u8 stream.m3u8
 }
 
 function livestream_manage_audio() {
@@ -92,13 +92,8 @@ function livestream_manage_audio() {
     done
 }
 
-function livestream_send_loop() {
-    livestream_manage_audio &
-    sleep 1
-    livestream_send
-}
-
 function livestream_get_random_audio() {
+    livestream_load_music
     RANDOM_AUDIO=${MUSIC[$RANDOM % ${#MUSIC[@]} ]}
     AUDIO_LENGTH=$(ffprobe -v error -show_entries format=duration -of \
         default=noprint_wrappers=1:nokey=1 "$RANDOM_AUDIO")
@@ -128,14 +123,18 @@ function livestream_load_music() {
 }
 
 function livestream_quit() {
-    livestream_log "Quitting livestream"
-    for pid in $(pgrep livestream.sh); do
+    echo "asdasd"
+    #livestream_log "Quitting livestream"
+    for pid in "${PIDS[@]}"; do
+        echo "KILLING $pid"
+        livestream_log "Killing $pid"
         kill -0 "$pid" && kill "$pid"
     done
+    pkill livestream.sh
 }
 
 function livestream_log() {
-    echo "$(date +'[%m-%d %H:%M:%S]') $1" > livestream.log
+    echo "$(date +'[%m-%d %H:%M:%S]') $1" >> livestream.log
 }
 
 function livestream_start() {
@@ -145,9 +144,11 @@ function livestream_start() {
     fi
     livestream_log "Starting livestream..."
     rm -f audio* stream.m3u8 && cp done.m3u8 stream.m3u8
-    livestream_load_music
-    livestream_listen &
-    livestream_send_loop &
+    (livestream_listen & \
+    (livestream_manage_audio & \
+    (sleep 1 && livestream_send)) )&
+
+#    livestream_send_loop)&
 }
 
 function livestream_help() {
@@ -159,6 +160,7 @@ function livestream_version() {
 }
 
 function livestream_main() {
+    PIDS=( )
     if [[ $# -eq 0 ]]; then
          echo "Please supply at least one argument. Type --help for help."
         exit 1
@@ -186,5 +188,5 @@ function livestream_main() {
     esac
 }
 
-trap livestream_quit KILL
+trap livestream_quit SIGTERM
 livestream_main $@
