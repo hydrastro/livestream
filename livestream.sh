@@ -19,6 +19,7 @@ AUDIO_BITRATE="128k"
 
 AUDIO_DIR="./music"
 RTMP_SERVER="rtmp://${IP}:${PORT}/${STREAMKEY}"
+LIVESTREAM_VERSION="1.0"
 
 function livestream_send() {
     ffmpeg                                                                     \
@@ -54,6 +55,7 @@ function livestream_send() {
 }
 
 function livestream_listen() {
+    livestream_log "Starting listening server."
     ffmpeg                                                                     \
         -hide_banner                                                           \
         -loglevel error                                                        \
@@ -91,7 +93,8 @@ function livestream_manage_audio() {
 }
 
 function livestream_send_loop() {
-    livestream_manage_audio & PIDS+=("$!")
+    livestream_manage_audio &
+    sleep 1
     livestream_send
 }
 
@@ -115,6 +118,7 @@ function livestream_update_video_text() {
 }
 
 function livestream_load_music() {
+    livestream_log "Loading music files"
     i=0
     for entry in ${AUDIO_DIR}/*
     do
@@ -124,25 +128,63 @@ function livestream_load_music() {
 }
 
 function livestream_quit() {
-    for pid in "${PIDS[@]}"; do
+    livestream_log "Quitting livestream"
+    for pid in $(pgrep livestream.sh); do
         kill -0 "$pid" && kill "$pid"
     done
 }
 
 function livestream_log() {
-    echo -n "date +"[%m-%d %H:%M:%S]" & $1" > livestream.log
+    echo "$(date +'[%m-%d %H:%M:%S]') $1" > livestream.log
+}
+
+function livestream_start() {
+    if [ $(pgrep "livestream.sh" | wc -l) -gt "2" ]; then
+        livestream_log "Livestream is already running."
+        exit 1;
+    fi
+    livestream_log "Starting livestream..."
+    rm -f audio* stream.m3u8 && cp done.m3u8 stream.m3u8
+    livestream_load_music
+    livestream_listen &
+    livestream_send_loop &
+}
+
+function livestream_help() {
+    echo "lol"
+}
+
+function livestream_version() {
+    echo "Livestream version $LIVESTREAM_VERSION"
 }
 
 function livestream_main() {
-    PIDS=( )
-    rm -f audio* stream.m3u8 && cp done.m3u8 stream.m3u8
-    #while true; do
-        livestream_load_music
-        livestream_listen & PIDS+=("$!")
-        livestream_send_loop
-    #done
+    if [[ $# -eq 0 ]]; then
+         echo "Please supply at least one argument. Type --help for help."
+        exit 1
+    fi
+    case "$1" in
+        "-h" | "--help"      )
+            livestream_help
+            ;;
+        "-v" | "--version"   )
+            livestream_version
+            ;;
+        "-s" | "--start"     )
+            livestream_start
+            ;;
+        "-u" | "--status"    )
+            livestream_status
+            ;;
+        "-q" | "--quit"      )
+            livestream_quit
+            ;;
+        *)
+            echo "Invalid argument(s). Type --help for help."
+            exit 1
+            ;;
+    esac
 }
 
 trap livestream_quit KILL
-trap livestream_quit SIGINT
-livestream_main & PIDS+=("$!")
+livestream_main $@
