@@ -125,7 +125,6 @@ function livestream_load_music() {
 
 function livestream_quit() {
     for pid in "${PIDS[@]}"; do
-        read -p "killing someone"
         kill -0 "$pid" && kill "$pid"
     done
 }
