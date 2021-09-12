@@ -16,11 +16,14 @@ TEXT_BORDER_H="36"
 QUALITY="superfast"
 VIDEO_BITRATE="1500k"
 AUDIO_BITRATE="128k"
+
 AUDIO_DIR="./music"
 RTMP_SERVER="rtmp://${IP}:${PORT}/${STREAMKEY}"
 
-livestream_send() {
+function livestream_send() {
     ffmpeg                                                                     \
+        -hide_banner                                                           \
+        -loglevel error                                                        \
         -re                                                                    \
         -stream_loop -1                                                        \
         -f lavfi                                                               \
@@ -44,15 +47,16 @@ livestream_send() {
         -acodec libmp3lame                                                     \
         -ar 44100                                                              \
         -threads 6                                                             \
-        -qscale:v 3                                                            \
         -b:a ${AUDIO_BITRATE}                                                  \
-        -flush_packets 0 \
+        -flush_packets 0                                                       \
         -bufsize 512k                                                          \
         -f flv "${RTMP_SERVER}"
 }
 
-livestream_listen() {
+function livestream_listen() {
     ffmpeg                                                                     \
+        -hide_banner                                                           \
+        -loglevel error                                                        \
         -listen 1                                                              \
         -timeout -1                                                            \
         -i "$RTMP_SERVER"                                                      \
@@ -68,7 +72,7 @@ livestream_listen() {
     cp -f done.m3u8 stream.m3u8;
 }
 
-livestream_manage_audio() {
+function livestream_manage_audio() {
     livestream_get_random_audio
     video_text=$(livestream_get_video_text "$RANDOM_AUDIO")
     livestream_update_video_text "$video_text"
@@ -86,31 +90,31 @@ livestream_manage_audio() {
     done
 }
 
-livestream_send_loop() {
-    livestream_manage_audio &
+function livestream_send_loop() {
+    livestream_manage_audio & PIDS+=("$!")
     livestream_send
 }
 
-livestream_get_random_audio() {
+function livestream_get_random_audio() {
     RANDOM_AUDIO=${MUSIC[$RANDOM % ${#MUSIC[@]} ]}
     AUDIO_LENGTH=$(ffprobe -v error -show_entries format=duration -of \
         default=noprint_wrappers=1:nokey=1 "$RANDOM_AUDIO")
 }
 
-livestream_update_audio_file() {
+function livestream_update_audio_file() {
     cp -f "$1" ./audio$2.opus
 }
 
-livestream_get_video_text() {
+function livestream_get_video_text() {
     audio_filename=$(basename "${1%.*}")
     echo "$TEXT_PREFIX$audio_filename"
 }
 
-livestream_update_video_text() {
+function livestream_update_video_text() {
     echo "$1" > ${TEXT_SOURCE}
 }
 
-livestream_load_music() {
+function livestream_load_music() {
     i=0
     for entry in ${AUDIO_DIR}/*
     do
@@ -119,19 +123,27 @@ livestream_load_music() {
     done < <(ls -ls)
 }
 
-livestream_quit() {
+function livestream_quit() {
     for pid in "${PIDS[@]}"; do
         read -p "killing someone"
         kill -0 "$pid" && kill "$pid"
     done
 }
 
-livestream_log() {
+function livestream_log() {
     echo -n "date +"[%m-%d %H:%M:%S]" & $1" > livestream.log
 }
 
-while true; do
-    livestream_load_music
-    livestream_listen &
-    livestream_send_loop
-done
+function livestream_main() {
+    PIDS=( )
+    rm -f audio* stream.m3u8 && cp done.m3u8 stream.m3u8
+    #while true; do
+        livestream_load_music
+        livestream_listen & PIDS+=("$!")
+        livestream_send_loop
+    #done
+}
+
+trap livestream_quit KILL
+trap livestream_quit SIGINT
+livestream_main & PIDS+=("$!")

@@ -66,3 +66,5 @@ systemctl enable stream
 
 ## TODO
 - [ ] Music queue
+- [ ] Installation
+- [ ] Start / stop + queue (using signals?)
