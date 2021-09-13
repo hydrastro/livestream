@@ -19,9 +19,12 @@ AUDIO_BITRATE="128k"
 
 AUDIO_DIR="./music"
 RTMP_SERVER="rtmp://${IP}:${PORT}/${STREAMKEY}"
-LIVESTREAM_VERSION="1.0"
+LIVESTREAM_VERSION="1.1"
+LIVESTREAM_LOG_FILE="log"
+LIVESTREAM_LOG_LEVEL="NONE"
 
 function livestream_send() {
+    livestream_log "Starting streaming."
     ffmpeg                                                                     \
         -hide_banner                                                           \
         -loglevel error                                                        \
@@ -51,7 +54,7 @@ function livestream_send() {
         -b:a ${AUDIO_BITRATE}                                                  \
         -flush_packets 0                                                       \
         -bufsize 512k                                                          \
-        -f flv "${RTMP_SERVER}" & PIDS+=("$!")
+        -f flv "${RTMP_SERVER}" &
 }
 
 function livestream_listen() {
@@ -70,8 +73,7 @@ function livestream_listen() {
         -hls_list_size 5                                                       \
         -hls_allow_cache 1                                                     \
         -hls_flags delete_segments                                             \
-        -flush_packets 1 stream.m3u8 & PIDS+=("$!")
-    cp -f done.m3u8 stream.m3u8
+        -flush_packets 1 stream.m3u8 &
 }
 
 function livestream_manage_audio() {
@@ -113,7 +115,7 @@ function livestream_update_video_text() {
 }
 
 function livestream_load_music() {
-    livestream_log "Loading music files"
+    livestream_log "Loading music files."
     i=0
     for entry in ${AUDIO_DIR}/*
     do
@@ -123,18 +125,26 @@ function livestream_load_music() {
 }
 
 function livestream_quit() {
-    echo "asdasd"
-    #livestream_log "Quitting livestream"
-    for pid in "${PIDS[@]}"; do
-        echo "KILLING $pid"
-        livestream_log "Killing $pid"
-        kill -0 "$pid" && kill "$pid"
-    done
-    pkill livestream.sh
+    livestream_log "Quitting livestream."
+    kill -9 -$(ps -efj | grep -m 1 "livestream.sh -s" | awk '{print $4}') &&   \
+    cp -f done.m3u8 stream.m3u8 &&                                             \
+    echo "Livestream stopped."
+    exit
 }
 
 function livestream_log() {
-    echo "$(date +'[%m-%d %H:%M:%S]') $1" >> livestream.log
+    if $LIVESTREAM_LOG_LEVEL != "NONE"; then
+        echo "$(date +'[%Y-%m-%d %H:%M:%S]') $1" >> $LIVESTREAM_LOG_FILE
+    fi
+}
+
+function livestream_status() {
+    if [ $(pgrep "livestream.sh" | wc -l) -gt "2" ]; then
+        echo "Livestream is online."
+    else
+        echo "Livestream is offline."
+    fi
+    exit 0;
 }
 
 function livestream_start() {
@@ -142,13 +152,19 @@ function livestream_start() {
         livestream_log "Livestream is already running."
         exit 1;
     fi
-    livestream_log "Starting livestream..."
-    rm -f audio* stream.m3u8 && cp done.m3u8 stream.m3u8
-    (livestream_listen & \
-    (livestream_manage_audio & \
-    (sleep 1 && livestream_send)) )&
+    livestream_log "Starting livestream."
+    rm -f audio*
+    livestream_listen
+    livestream_manage_audio &
+    sleep 1 && livestream_send
+    livestream_guard&
+    echo "Livestream started."
+}
 
-#    livestream_send_loop)&
+function livestream_guard() {
+    while true; do
+        sleep 1
+    done
 }
 
 function livestream_help() {
@@ -160,7 +176,6 @@ function livestream_version() {
 }
 
 function livestream_main() {
-    PIDS=( )
     if [[ $# -eq 0 ]]; then
          echo "Please supply at least one argument. Type --help for help."
         exit 1
@@ -188,5 +203,5 @@ function livestream_main() {
     esac
 }
 
-trap livestream_quit SIGTERM
+trap livestream_quit SIGTERM SIGINT
 livestream_main $@
