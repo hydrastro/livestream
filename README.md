@@ -22,7 +22,7 @@ use the same codec!**
 
 ### Nginx
 **You can skip this if you are already familiar with nginx or other
-webservers.**
+webservers.**  
 For starting nginx you simply do:
 ```shell
 sudo service nginx start
