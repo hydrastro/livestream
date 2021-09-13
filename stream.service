@@ -4,8 +4,10 @@ After=syslog.target network.target
 
 [Service]
 WorkingDirectory=/opt/livestream/
-ExecStart=/usr/bin/bash livestream.sh
-Restart=never
+ExecStart=/usr/bin/bash livestream.sh -s
+ExecStop=/usr/bin/bash livestream.sh -q
+# Uncomment the following line for enabling auto-restart
+#Restart=always
 User=www-data
 [Install]
 WantedBy=multi-user.target
