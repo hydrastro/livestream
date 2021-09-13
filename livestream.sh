@@ -11,17 +11,17 @@ TEXT_SPEED="1"
 TEXT_SIZE="18"
 TEXT_BOX_COLOR="black@0.5"
 TEXT_COLOR="white@0.8"
-TEXT_SOURCE="./text.txt"
+TEXT_SOURCE="./now_playing.txt"
 TEXT_BORDER_H="36"
 QUALITY="superfast"
 VIDEO_BITRATE="1500k"
 AUDIO_BITRATE="128k"
-
 AUDIO_DIR="./music"
 RTMP_SERVER="rtmp://${IP}:${PORT}/${STREAMKEY}"
-LIVESTREAM_VERSION="1.1"
-LIVESTREAM_LOG_FILE="log"
-LIVESTREAM_LOG_LEVEL="NONE"
+SCRIPT_VERSION="1.2"
+LOG_FILE="log"
+LOG_LEVEL="lmao"
+QUEUE_FILE="./queue.txt"
 
 function livestream_send() {
     livestream_log "Starting streaming."
@@ -33,20 +33,20 @@ function livestream_send() {
         -f lavfi                                                               \
         -i "movie=filename=${VIDEO_SOURCE}:loop=0, setpts=N/(FRAME_RATE*TB)"   \
         -thread_queue_size 512                                                 \
-        -i ./list.txt                                                          \
+        -i ./loop.txt                                                          \
         -map 0:v:0 -map 1:a:0                                                  \
         -map_metadata:g 1:g                                                    \
         -vf "drawbox=x=0:y=ih-${TEXT_BORDER_H}:color=${TEXT_BOX_COLOR}:        \
             width=iw:height=${TEXT_BORDER_H}:t=fill,                           \
             drawtext=fontfile=${FONT_FILE}:fontsize=${TEXT_SIZE}:              \
             textfile=${TEXT_SOURCE}:reload=1:fontcolor=${TEXT_COLOR}:          \
-            x=(mod(2*n\,w+tw)-tw):y=h-line_h-10,                               \
+            x=(mod(${TEXT_SPEED}*n\,w+tw)-tw):y=h-line_h-10,                   \
             pad=ceil(iw/2)*2:ceil(ih/2)*2"                                     \
         -vcodec libx264                                                        \
         -pix_fmt yuv420p                                                       \
         -preset ${QUALITY}                                                     \
         -r ${FPS}                                                              \
-        -g $((${FPS} * 2))                                                     \
+        -g $((FPS * 2))                                                        \
         -b:v ${VIDEO_BITRATE}                                                  \
         -acodec libmp3lame                                                     \
         -ar 44100                                                              \
@@ -84,25 +84,83 @@ function livestream_manage_audio() {
     sleep_time=$(echo | awk "{printf $AUDIO_LENGTH}")
     current_file_id=1
     while true; do
-        livestream_get_random_audio
-        livestream_update_audio_file "$RANDOM_AUDIO" $current_file_id
-        sleep $sleep_time
+        livestream_get_next_audio
+        livestream_update_audio_file "$NEXT_AUDIO" $current_file_id
+        sleep "$sleep_time"
         sleep_time=$(echo | awk "{print $AUDIO_LENGTH}")
-        video_text=$(livestream_get_video_text "$RANDOM_AUDIO")
+        video_text=$(livestream_get_video_text "$NEXT_AUDIO")
         livestream_update_video_text "$video_text"
-        [[ $current_file_id == 0 ]] && current_file_id=1 || current_file_id=0
+        [[ $current_file_id -eq 0 ]] && current_file_id=1 || current_file_id=0
+    done
+}
+
+function livestream_get_next_audio() {
+    livestream_load_queue
+    if [[ ${#QUEUE[@]} -eq 0 ]]; then
+        livestream_get_random_audio
+        NEXT_AUDIO=$RANDOM_AUDIO
+    else
+        NEXT_AUDIO=${QUEUE[0]}
+        livestream_remove_queue_audio "$NEXT_AUDIO"
+    fi
+}
+
+function livestream_remove_queue_audio() {
+    if [[ $# -lt 1 ]]; then
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        return 1
+    fi
+    livestream_load_queue
+    similarity=${2:false}
+    if $similarity; then
+        queue_audio=$(find . -iname "*$1*" -print)
+    else
+        queue_audio=$1
+    fi
+    if [[ -z $queue_audio ]]; then
+        livestream_log "Requested audio not found."
+        return 1
+    else
+        livestream_log "Removing $audio to queue."
+    fi
+    grep -v "$queue_audio" < $QUEUE_FILE > ./tmp && mv -f ./tmp $QUEUE_FILE
+}
+
+function livestream_play() {
+    audio=$(find . -iname "*$1*" -print)
+    if [[ -z $audio ]]; then
+        livestream_log "Requested audio not found."
+    else
+        livestream_log "Adding $audio to queue."
+        echo "$audio" >> ${QUEUE_FILE}
+    fi
+}
+
+function livestream_load_queue() {
+    readarray -t QUEUE < ${QUEUE_FILE}
+}
+
+function livestream_show_queue() {
+    livestream_load_queue
+    for audio in "${QUEUE[@]}"; do
+        echo "$audio"
     done
 }
 
 function livestream_get_random_audio() {
     livestream_load_music
-    RANDOM_AUDIO=${MUSIC[$RANDOM % ${#MUSIC[@]} ]}
-    AUDIO_LENGTH=$(ffprobe -v error -show_entries format=duration -of \
+    RANDOM_AUDIO=${MUSIC[$RANDOM % ${#MUSIC[@]}]}
+    AUDIO_LENGTH=$(ffprobe -v error -show_entries format=duration -of          \
         default=noprint_wrappers=1:nokey=1 "$RANDOM_AUDIO")
 }
 
 function livestream_update_audio_file() {
-    cp -f "$1" ./audio$2.opus
+    if [[ $# -lt 2 ]]; then
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        return 1
+    fi
+    livestream_log "copying $1 into $2"
+    cp -f "$1" "./audio$2.opus"
 }
 
 function livestream_get_video_text() {
@@ -111,13 +169,17 @@ function livestream_get_video_text() {
 }
 
 function livestream_update_video_text() {
-    echo "$1" > ${TEXT_SOURCE}
+    if [[ $# -lt 1 ]]; then
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        return 1
+    fi
+    echo "$1" > $TEXT_SOURCE
 }
 
 function livestream_load_music() {
     livestream_log "Loading music files."
     i=0
-    for entry in ${AUDIO_DIR}/*
+    for entry in "$AUDIO_DIR"/*
     do
         MUSIC[ $i ]="$entry"
         (( i++ ))
@@ -126,20 +188,25 @@ function livestream_load_music() {
 
 function livestream_quit() {
     livestream_log "Quitting livestream."
-    kill -9 -$(ps -efj | grep -m 1 "livestream.sh -s" | awk '{print $4}') &&   \
+    # shellcheck disable=SC2009
+    kill -9 "-$(ps -efj | grep -m 1 'livestream.sh -s' | awk '{print $4}')" && \
     cp -f done.m3u8 stream.m3u8 &&                                             \
     echo "Livestream stopped."
     exit
 }
 
 function livestream_log() {
-    if [[ "$LIVESTREAM_LOG_LEVEL" != "NONE" ]]; then
-        echo "$(date +'[%Y-%m-%d %H:%M:%S]') $1" >> $LIVESTREAM_LOG_FILE
+    if [[ $# -lt 1 ]]; then
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        return 1
+    fi
+    if [[ "$LOG_LEVEL" != "NONE" ]]; then
+        echo "$(date +'[%Y-%m-%d %H:%M:%S]') $1" >> $LOG_FILE
     fi
 }
 
 function livestream_status() {
-    if [ $(pgrep "livestream.sh" | wc -l) -gt "2" ]; then
+    if [ "$(pgrep 'livestream.sh' | wc -l)" -gt 2 ]; then
         echo "Livestream is online."
     else
         echo "Livestream is offline."
@@ -148,7 +215,7 @@ function livestream_status() {
 }
 
 function livestream_start() {
-    if [ $(pgrep "livestream.sh" | wc -l) -gt "2" ]; then
+    if [ "$(pgrep 'livestream.sh' | wc -l)" -gt 2 ]; then
         livestream_log "Livestream is already running."
         exit 1;
     fi
@@ -168,11 +235,21 @@ function livestream_guard() {
 }
 
 function livestream_help() {
-    echo "lol"
+    livestream_version
+    printf "usage: ./livestream [options]\n\n"
+    printf "Options:\n"
+    printf "  -h | --help          Displays this information.\n"
+    printf "  -v | --versoin       Displays script version.\n"
+    printf "  -s | --start         Starts the livestream.\n"
+    printf "  -q | --quit          Stops the livestream.\n"
+    printf "  -u | --status        Displays this livestream status.\n"
+    printf "  -p | --play <arg>    Plays a requested song if it's found.\n"
+    printf "  -w | --queue         Displays the queue.\n"
+    printf "  -r | --remove <arg>  Removes a requested song from the queue, if it's found.\n"
 }
 
 function livestream_version() {
-    echo "Livestream version $LIVESTREAM_VERSION"
+    echo "Livestream version $SCRIPT_VERSION"
 }
 
 function livestream_main() {
@@ -181,20 +258,29 @@ function livestream_main() {
         exit 1
     fi
     case "$1" in
-        "-h" | "--help"      )
+        "-h" | "--help"                           )
             livestream_help
             ;;
-        "-v" | "--version"   )
+        "-v" | "--version"                        )
             livestream_version
             ;;
-        "-s" | "--start"     )
+        "-s" | "--start"                          )
             livestream_start
             ;;
-        "-u" | "--status"    )
+        "-u" | "--status"                         )
             livestream_status
             ;;
-        "-q" | "--quit"      )
+        "-q" | "--quit"                           )
             livestream_quit
+            ;;
+        "-p" | "--play"                           )
+            livestream_play "$2"
+            ;;
+        "-w" | "--queue"                          )
+            livestream_show_queue
+            ;;
+        "-r" | "--remove"                         )
+            livestream_remove_queue_audio "$2" true
             ;;
         *)
             echo "Invalid argument(s). Type --help for help."
@@ -204,4 +290,4 @@ function livestream_main() {
 }
 
 trap livestream_quit SIGTERM SIGINT
-livestream_main $@
+livestream_main "$@"

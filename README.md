@@ -106,6 +106,7 @@ stream {
     }
 }
 ```
+
 ### Offline video
 To create a video that will be displayed everytime your stream is offline, you
 can use the following commands.
@@ -124,16 +125,19 @@ Here's how you run the script:
 ```shell
 ./livestream.sh -s
 ```
+
 ### Stop
 For stopping the script:
 ```shell
 ./livestream.sh -q
 ```
+
 ### Status
 For checking the script status:
 ```shell
 ./livestream.sh -u
 ```
+
 ### Systemd Service
 You can create a new systemd service, with which you could automate the script
 start and more easily (for example at system boot, or making it restart in case
@@ -159,6 +163,13 @@ If you want to have it automatically started everytime you boot do:
 sudo systemctl enable stream
 ```
 
-## TODO
-- [ ] Music queue
+## Contributing
+Feel free to contribute, pull requests are always welcome.  
+Please reveiw and clean your code with `shellcheck` before pushing it.  
+If you want to help, Here below is a todo list.
 
+## TODO
+- [X] Music queue
+- [ ] Pause
+- [ ] MP4 / webm (no js) stream
+- [ ] Proper logging (levels)

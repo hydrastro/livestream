@@ -1,4 +1,4 @@
 ffconcat version 1.0
 file 'audio0.opus'
 file 'audio1.opus'
-file list.txt
+file loop.txt
