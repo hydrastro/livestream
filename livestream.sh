@@ -239,7 +239,7 @@ function livestream_help() {
     printf "usage: ./livestream [options]\n\n"
     printf "Options:\n"
     printf "  -h | --help          Displays this information.\n"
-    printf "  -v | --versoin       Displays script version.\n"
+    printf "  -v | --version       Displays script version.\n"
     printf "  -s | --start         Starts the livestream.\n"
     printf "  -q | --quit          Stops the livestream.\n"
     printf "  -u | --status        Displays this livestream status.\n"
