@@ -133,7 +133,7 @@ function livestream_quit() {
 }
 
 function livestream_log() {
-    if $LIVESTREAM_LOG_LEVEL != "NONE"; then
+    if [[ "$LIVESTREAM_LOG_LEVEL" != "NONE" ]]; then
         echo "$(date +'[%Y-%m-%d %H:%M:%S]') $1" >> $LIVESTREAM_LOG_FILE
     fi
 }
