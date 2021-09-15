@@ -26,7 +26,7 @@ FIFO_IN="in"
 FIFO_OUT="out"
 
 STATUS_STREAMING="STREAMING"
-STATUS_OFFILNE="OFFLINE"
+STATUS_OFFLINE="OFFLINE"
 STATUS_PAUSED="PAUSED"
 
 function livestream_send() {
@@ -160,7 +160,7 @@ function livestream_play() {
 
 function livestream_show_queue() {
     if [ ${#QUEUE[@]} -eq 0 ]; then
-        FIFO_REPLY "Queue is empty."
+        FIFO_REPLY="Queue is empty."
         return 1
     fi
     FIFO_REPLY="Queue:\n"
@@ -253,16 +253,16 @@ function livestream_log() {
     fi
 }
 
-function livestream_status() {
+function livestream_print_status_message() {
     case "$STATUS" in
         "$STATUS_STREAMING"             )
             echo "Livestream is online."
             ;;
-         "$STATUS_OFFLINE"              )
-            echo "Livestream is offline."
-            ;;
          "$STATUS_PAUSED"               )
             echo "Livestream is paused."
+            ;;
+         "$STATUS_OFFLINE"              )
+            echo "Livestream is offline."
             ;;
     esac
 }
@@ -322,10 +322,13 @@ function livestream_handle_command() {
         "QUIT"                                )
             livestream_quit
             ;;
+        "STATUS"                              )
+            FIFO_REPLY=$STATUS
+            ;;
         *                                     )
             ;;
     esac
-    (printf "$FIFO_REPLY"; printf "\nBYE\n") > "$FIFO_OUT"
+    printf "$FIFO_REPLY\n" > "$FIFO_OUT"
 }
 
 function livestream_help() {
@@ -349,6 +352,10 @@ function livestream_version() {
 }
 
 function livestream_send_command() {
+    if [[ "$STATUS" == "$STATUS_OFFLINE" ]]; then
+        livestream_log "Livestream is not running."
+        exit 1;
+    fi
     case "$1" in
         "QUIT"                              )
             echo "QUIT" > "$FIFO_IN"
@@ -365,13 +372,21 @@ function livestream_send_command() {
         "PAUSE"                             )
             echo "PAUSE ${@:2}" > "$FIFO_IN"
             ;;
+        "STATUS"                            )
+            echo "STATUS" > "$FIFO_IN"
+            ;;
     esac
-    while read line < "$FIFO_OUT"; do
-        if [[ "$line" == "BYE" ]]; then
-            exit 0
-        fi
-        echo "$line"
-    done
+    cat "$FIFO_OUT"
+    exit 0
+}
+
+function livestream_get_status() {
+    if [ "$(pgrep 'livestream.sh' | wc -l)" -gt 2 ]; then
+        echo "STATUS" > "$FIFO_IN"
+        STATUS=$(cat "$FIFO_OUT")
+    else
+        STATUS="$STATUS_OFFLINE"
+    fi
 }
 
 function livestream_main() {
@@ -379,7 +394,7 @@ function livestream_main() {
         echo "Please supply at least one argument. Type --help for help."
         exit 1
     fi
-    STATUS="$STATUS_OFFLINE"
+    livestream_get_status
     case "$1" in
         "-h" | "--help"                           )
             livestream_help
@@ -391,7 +406,7 @@ function livestream_main() {
             livestream_start
             ;;
         "-u" | "--status"                         )
-            livestream_status
+            livestream_print_status_message
             ;;
         "-q" | "--quit"                           )
             livestream_quit
@@ -405,7 +420,7 @@ function livestream_main() {
         "-r" | "--remove"                         )
             livestream_send_command "REMOVE" ${@:2}
             ;;
-        "-e" | "--pause"                          )
+        "-a" | "--pause"                          )
             livestream_send_command "PAUSE"
             ;;
         *                                         )
