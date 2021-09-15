@@ -115,11 +115,12 @@ function livestream_manage_audio() {
 function livestream_queue_pop() {
     unset 'QUEUE[0]'
     QUEUE=("${QUEUE[@]}")
+    FIFO_REPLY="Popped."
 }
 
 function livestream_load_queue() {
     if [[ "$STATUS" == "$STATUS_OFFLINE" ]]; then
-        livestream_log "Can't load queue: ivestream is offline."
+        livestream_log "Can't load queue: livestream is offline."
         exit 1
     fi
     echo "QUEUE" > "$FIFO_IN"
@@ -134,9 +135,6 @@ function livestream_load_queue() {
 
 function livestream_get_next_audio() {
     livestream_load_queue
-    for x in "${QUEUE[@]}"; do
-        livestream_log "$x"
-    done
     if [[ "$STATUS" == "$STATUS_STREAMING" ]]; then
         if [[ ${#QUEUE[@]} -ne 0 ]]; then
             livestream_log "Playing next audio from the queue"
@@ -300,7 +298,6 @@ function livestream_create_loop_file() {
 }
 
 function livestream_resume() {
-    livestream_create_loop_file
     STATUS="$STATUS_STREAMING"
     FIFO_REPLY="Livestream resumed."
 }
@@ -401,16 +398,17 @@ function livestream_help() {
     livestream_version
     printf "usage: ./livestream [options]\\n\\n"
     printf "Options:\\n"
-    printf "  -h | --help          Displays this information.\\n"
-    printf "  -v | --version       Displays script version.\\n"
-    printf "  -s | --start         Starts the livestream.\\n"
-    printf "  -q | --quit          Stops the livestream.\\n"
-    printf "  -u | --status        Displays this livestream status.\\n"
-    printf "  -p | --play <arg>    Plays a requested song if it's found.\\n"
-    printf "  -w | --queue         Displays the queue.\\n"
-    printf "  -r | --remove <arg>  Removes a requested song from the queue.\\n"
-    printf "  -a | --pause         Pauses the livestream.\\n"
-    printf "  -e | --resume        Resumes the livestream.\\n"
+    printf "  -h | (--)help          Displays this information.\\n"
+    printf "  -v | (--)version       Displays script version.\\n"
+    printf "  -s | (--)start         Starts the livestream.\\n"
+    printf "  -q | (--)quit          Stops the livestream.\\n"
+    printf "  -u | (--)status        Displays this livestream status.\\n"
+    printf "  -p | (--)play <arg>    Plays a song if it's found.\\n"
+    printf "  -w | (--)queue         Displays the queue.\\n"
+    printf "  -r | (--)remove <arg>  Removes a song from the queue.\\n"
+    printf "  -a | (--)pause         Pauses the livestream.\\n"
+    printf "  -e | (--)resume        Resumes the livestream.\\n"
+    printf "  -m | (--)pop           Pops the first element of the queue.\\n"
 }
 
 function livestream_version() {
@@ -445,6 +443,9 @@ function livestream_send_command() {
         "RESUME"                               )
             echo "RESUME" > "$FIFO_IN"
             ;;
+        "POP"                                  )
+            echo "POP" > "$FIFO_IN"
+            ;;
     esac
     cat "$FIFO_OUT"
     exit 0
@@ -466,35 +467,38 @@ function livestream_main() {
     fi
     livestream_get_status
     case "$1" in
-        "-h" | "--help"                                     )
+        "-h" | "--help" | "help"                            )
             livestream_help
             ;;
-        "-v" | "--version"                                  )
+        "-v" | "--version" | "version"                      )
             livestream_version
             ;;
-        "-s" | "--start"                                    )
+        "-s" | "--start" | "start"                          )
             livestream_start
             ;;
-        "-q" | "--quit"                                     )
+        "-q" | "--quit" | "quit"                            )
             livestream_quit
             ;;
-        "-u" | "--status"                                   )
+        "-u" | "--status" | "status"                        )
             livestream_print_status_message
             ;;
-        "-p" | "--play"                                     )
+        "-p" | "--play" | "play"                            )
             livestream_send_command "PLAY" "${@:2}"
             ;;
-        "-w" | "--queue"                                    )
+        "-w" | "--queue" | "queue"                          )
             livestream_send_command "QUEUE"
             ;;
-        "-r" | "--remove"                                   )
+        "-r" | "--remove" | "remove"                        )
             livestream_send_command "REMOVE" "${@:2}"
             ;;
-        "-a" | "--pause"                                    )
+        "-a" | "--pause" | "pause"                          )
             livestream_send_command "PAUSE"
             ;;
-        "-e" | "--resume"                                   )
+        "-e" | "--resume" | "resume"                        )
             livestream_send_command "RESUME"
+            ;;
+        "-m" | "--pop" | "pop"                              )
+            livestream_send_command "POP"
             ;;
         *                                                   )
             echo "Invalid argument(s). Type --help for help."
