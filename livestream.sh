@@ -22,6 +22,12 @@ SCRIPT_VERSION="1.2"
 LOG_FILE="log"
 LOG_LEVEL="lmao"
 QUEUE_FILE="./queue.txt"
+FIFO_IN="in"
+FIFO_OUT="out"
+
+STATUS_STREAMING="STREAMING"
+STATUS_OFFILNE="OFFLINE"
+STATUS_PAUSED="PAUSED"
 
 function livestream_send() {
     livestream_log "Starting streaming."
@@ -95,13 +101,17 @@ function livestream_manage_audio() {
 }
 
 function livestream_get_next_audio() {
-    livestream_load_queue
-    if [[ ${#QUEUE[@]} -eq 0 ]]; then
-        livestream_get_random_audio
-        NEXT_AUDIO=$RANDOM_AUDIO
-    else
+    if [[ ${#QUEUE[@]} -ne 0 ]]; then
         NEXT_AUDIO=${QUEUE[0]}
         livestream_remove_queue_audio "$NEXT_AUDIO"
+    else
+        livestream_get_random_audio
+        NEXT_AUDIO=$RANDOM_AUDIO
+    fi
+    if [[ ! -f "$NEXT_AUDIO" ]]; then
+        livestream_log "Error: audio file ($NEXT_AUDIO) not found"
+        livestream_get_random_audio
+        NEXT_AUDIO=$RANDOM_AUDIO
     fi
 }
 
@@ -110,40 +120,52 @@ function livestream_remove_queue_audio() {
         livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
         return 1
     fi
-    livestream_load_queue
     similarity=${2:false}
-    if $similarity; then
+    if [ "$similarity" = true ]; then
         queue_audio=$(find . -iname "*$1*" -print)
     else
         queue_audio=$1
     fi
     if [[ -z $queue_audio ]]; then
         livestream_log "Requested audio not found."
+        FIFO_REPLY="Requested audio not found."
         return 1
     else
-        livestream_log "Removing $audio to queue."
+        livestream_log "Removing $queue_audio from queue."
     fi
-    grep -v "$queue_audio" < $QUEUE_FILE > ./tmp && mv -f ./tmp $QUEUE_FILE
+    for i in "${!QUEUE[@]}"; do
+        if [[ ${QUEUE[i]} = $queue_audio ]]; then
+            unset 'array[i]'
+        fi
+    done
+    QUEUE=("${QUEUE[@]}")
+    FIFO_REPLY="Audio successfully removed from queue."
 }
 
 function livestream_play() {
+    if [[ $# -lt 1 ]]; then
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        return 1
+    fi
     audio=$(find . -iname "*$1*" -print)
     if [[ -z $audio ]]; then
         livestream_log "Requested audio not found."
+        FIFO_REPLY="Requested audio not found."
     else
-        livestream_log "Adding $audio to queue."
-        echo "$audio" >> ${QUEUE_FILE}
+        QUEUE+=("$audio")
+        livestream_log "Audio $audio successfully added to queue."
+        FIFO_REPLY="Audio $audio successfully added to queue."
     fi
 }
 
-function livestream_load_queue() {
-    readarray -t QUEUE < ${QUEUE_FILE}
-}
-
 function livestream_show_queue() {
-    livestream_load_queue
+    if [ ${#QUEUE[@]} -eq 0 ]; then
+        FIFO_REPLY "Queue is empty."
+        return 1
+    fi
+    FIFO_REPLY="Queue:\n"
     for audio in "${QUEUE[@]}"; do
-        echo "$audio"
+        FIFO_REPLY+="$audio\n"
     done
 }
 
@@ -160,7 +182,11 @@ function livestream_update_audio_file() {
         return 1
     fi
     livestream_log "copying $1 into $2"
-    cp -f "$1" "./audio$2.opus"
+    if [[ -f "$1" ]]; then
+        cp -f "$1" "./audio$2.opus"
+    else
+        livestream_log "Error: audio file ($1) not found."
+    fi
 }
 
 function livestream_get_video_text() {
@@ -191,8 +217,30 @@ function livestream_quit() {
     # shellcheck disable=SC2009
     kill -9 "-$(ps -efj | grep -m 1 'livestream.sh -s' | awk '{print $4}')" && \
     cp -f done.m3u8 stream.m3u8 &&                                             \
-    echo "Livestream stopped."
+    echo "Livestream quit."
+    FIFO_REPLY="Livestream stopped."
     exit
+}
+
+function livestream_pause() {
+    echo "ffconcat version 1.0" > ./loop.txt
+    echo "file pause.opus" >> ./loop.txt
+    echo "file loop.txt" >> ./loop.txt
+    STATUS="$STATUS_PAUSED"
+    FIFO_REPLY="Livestream paused."
+}
+
+function livestream_create_loop_file() {
+    echo "ffconcat version 1.0" > ./loop.txt
+    echo "file audio0.opus" >> ./loop.txt
+    echo "file audio1.opus" >> ./loop.txt
+    echo "file loop.txt" >> ./loop.txt
+}
+
+function livestream_resume() {
+    livestream_create_loop_file
+    STATUS="$STATUS_STREAMING"
+    FIFO_REPLY="Livestream resumed."
 }
 
 function livestream_log() {
@@ -206,12 +254,17 @@ function livestream_log() {
 }
 
 function livestream_status() {
-    if [ "$(pgrep 'livestream.sh' | wc -l)" -gt 2 ]; then
-        echo "Livestream is online."
-    else
-        echo "Livestream is offline."
-    fi
-    exit 0;
+    case "$STATUS" in
+        "$STATUS_STREAMING"             )
+            echo "Livestream is online."
+            ;;
+         "$STATUS_OFFLINE"              )
+            echo "Livestream is offline."
+            ;;
+         "$STATUS_PAUSED"               )
+            echo "Livestream is paused."
+            ;;
+    esac
 }
 
 function livestream_start() {
@@ -220,18 +273,59 @@ function livestream_start() {
         exit 1;
     fi
     livestream_log "Starting livestream."
-    rm -f audio*
+    rm -f audio* "$FIFO_IN" "$FIFO_OUT"
+    mkfifo "$FIFO_IN"
+    mkfifo "$FIFO_OUT"
+    STATUS="$STATUS_STREAMING"
+    QUEUE=( )
+    livestream_create_loop_file
     livestream_listen
     livestream_manage_audio &
     sleep 1 && livestream_send
-    livestream_guard&
+    livestream_guard &
     echo "Livestream started."
 }
 
 function livestream_guard() {
     while true; do
+        if read command < "$FIFO_IN"; then
+            livestream_handle_command "$command"
+        fi
         sleep 1
     done
+}
+
+function livestream_handle_command() {
+    if [[ $# -lt 1 ]]; then
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        return 1
+    fi
+    full_command=$1
+    command=$(echo "$full_command" | head -n1 | awk '{print $1;}')
+    FIFO_REPLY=""
+    case "$command" in
+        "PAUSE"                               )
+            livestream_pause
+            ;;
+        "RESUME"                              )
+            livestream_resume
+            ;;
+        "PLAY"                                )
+            livestream_play ${full_command:5}
+            ;;
+        "REMOVE"                              )
+            livestream_remove ${full_command:7}
+            ;;
+        "QUEUE"                               )
+            livestream_show_queue
+            ;;
+        "QUIT"                                )
+            livestream_quit
+            ;;
+        *                                     )
+            ;;
+    esac
+    (printf "$FIFO_REPLY"; printf "\nBYE\n") > "$FIFO_OUT"
 }
 
 function livestream_help() {
@@ -246,17 +340,46 @@ function livestream_help() {
     printf "  -p | --play <arg>    Plays a requested song if it's found.\n"
     printf "  -w | --queue         Displays the queue.\n"
     printf "  -r | --remove <arg>  Removes a requested song from the queue, if it's found.\n"
+    printf "  -a | --pause         Pauses the livestream.\n"
+    printf "  -e | --resume        Resumes the livestream.\n"
 }
 
 function livestream_version() {
     echo "Livestream version $SCRIPT_VERSION"
 }
 
+function livestream_send_command() {
+    case "$1" in
+        "QUIT"                              )
+            echo "QUIT" > "$FIFO_IN"
+            ;;
+        "PLAY"                              )
+            echo "PLAY ${@:2}" > "$FIFO_IN"
+            ;;
+        "QUEUE"                             )
+            echo "QUEUE" > "$FIFO_IN"
+            ;;
+        "REMOVE"                            )
+            echo "REMOVE ${@:2}" > "$FIFO_IN"
+            ;;
+        "PAUSE"                             )
+            echo "PAUSE ${@:2}" > "$FIFO_IN"
+            ;;
+    esac
+    while read line < "$FIFO_OUT"; do
+        if [[ "$line" == "BYE" ]]; then
+            exit 0
+        fi
+        echo "$line"
+    done
+}
+
 function livestream_main() {
     if [[ $# -eq 0 ]]; then
-         echo "Please supply at least one argument. Type --help for help."
+        echo "Please supply at least one argument. Type --help for help."
         exit 1
     fi
+    STATUS="$STATUS_OFFLINE"
     case "$1" in
         "-h" | "--help"                           )
             livestream_help
@@ -274,15 +397,18 @@ function livestream_main() {
             livestream_quit
             ;;
         "-p" | "--play"                           )
-            livestream_play "$2"
+            livestream_send_command "PLAY" ${@:2}
             ;;
         "-w" | "--queue"                          )
-            livestream_show_queue
+            livestream_send_command "QUEUE"
             ;;
         "-r" | "--remove"                         )
-            livestream_remove_queue_audio "$2" true
+            livestream_send_command "REMOVE" ${@:2}
             ;;
-        *)
+        "-e" | "--pause"                          )
+            livestream_send_command "PAUSE"
+            ;;
+        *                                         )
             echo "Invalid argument(s). Type --help for help."
             exit 1
             ;;
