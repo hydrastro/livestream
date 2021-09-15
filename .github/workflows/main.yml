@@ -32,4 +32,4 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Check code quality
         run: |
-          shellckeck livestream.sh
+          shellcheck livestream.sh
