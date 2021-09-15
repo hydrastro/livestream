@@ -45,7 +45,7 @@ function livestream_send() {
             width=iw:height=${TEXT_BORDER_H}:t=fill,                           \
             drawtext=fontfile=${FONT_FILE}:fontsize=${TEXT_SIZE}:              \
             textfile=${TEXT_SOURCE}:reload=1:fontcolor=${TEXT_COLOR}:          \
-            x=(mod(${TEXT_SPEED}*n\\,w+tw)-tw):y=h-line_h-10,                   \
+            x=(mod(${TEXT_SPEED}*n\\,w+tw)-tw):y=h-line_h-10,                  \
             pad=ceil(iw/2)*2:ceil(ih/2)*2"                                     \
         -vcodec libx264                                                        \
         -pix_fmt yuv420p                                                       \
@@ -90,12 +90,18 @@ function livestream_manage_audio() {
     current_file_id=1
     while true; do
         livestream_get_next_audio
-        livestream_update_audio_file "$NEXT_AUDIO" $current_file_id
-        sleep "$sleep_time"
-        sleep_time=$(echo | awk "{print $AUDIO_LENGTH}")
-        video_text=$(livestream_get_video_text "$NEXT_AUDIO")
-        livestream_update_video_text "$video_text"
-        [[ $current_file_id -eq 0 ]] && current_file_id=1 || current_file_id=0
+        if [[ "$STATUS" == "$STATUS_PAUSED" ]]; then
+            livestream_update_video_text "nothing."
+            sleep 5
+        else
+            livestream_update_audio_file "$NEXT_AUDIO" $current_file_id
+            sleep "$sleep_time"
+            sleep_time=$(echo | awk "{print $AUDIO_LENGTH}")
+            video_text=$(livestream_get_video_text "$NEXT_AUDIO")
+            livestream_update_video_text "$video_text"
+            [[ $current_file_id -eq 0 ]] && current_file_id=1 ||               \
+            current_file_id=0
+        fi
     done
 }
 
@@ -191,8 +197,12 @@ function livestream_update_audio_file() {
 }
 
 function livestream_get_video_text() {
-    audio_filename=$(basename "${1%.*}")
-    echo "$TEXT_PREFIX$audio_filename"
+    if [[ "$STATUS" == "$STATUS_PAUSED" ]]; then
+        echo "nothing."
+    else
+        audio_filename=$(basename "${1%.*}")
+        echo "$TEXT_PREFIX$audio_filename"
+    fi
 }
 
 function livestream_update_video_text() {
@@ -343,7 +353,7 @@ function livestream_help() {
     printf "  -u | --status        Displays this livestream status.\\n"
     printf "  -p | --play <arg>    Plays a requested song if it's found.\\n"
     printf "  -w | --queue         Displays the queue.\\n"
-    printf "  -r | --remove <arg>  Removes a requested song from the queue, if it's found.\\n"
+    printf "  -r | --remove <arg>  Removes a requested song from the queue.\\n"
     printf "  -a | --pause         Pauses the livestream.\\n"
     printf "  -e | --resume        Resumes the livestream.\\n"
 }
