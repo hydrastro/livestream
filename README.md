@@ -170,6 +170,6 @@ If you want to help, Here below is a todo list.
 
 ## TODO
 - [X] Music queue
-- [ ] Pause
+- [X] Pause
 - [ ] MP4 / webm (no js) stream
 - [ ] Proper logging (levels)
