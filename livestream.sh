@@ -89,11 +89,14 @@ function livestream_manage_audio() {
     sleep_time=$(echo | awk "{printf $AUDIO_LENGTH}")
     current_file_id=1
     while true; do
-        livestream_get_next_audio
         if [[ "$STATUS" == "$STATUS_PAUSED" ]]; then
             livestream_update_video_text "nothing."
+            livestream_update_audio_file "pause.opus" $current_file_id
+            [[ $current_file_id -eq 0 ]] && current_file_id=1 ||               \
+            current_file_id=0
             sleep 5
         else
+            livestream_get_next_audio
             livestream_update_audio_file "$NEXT_AUDIO" $current_file_id
             sleep "$sleep_time"
             sleep_time=$(echo | awk "{print $AUDIO_LENGTH}")
@@ -234,9 +237,6 @@ function livestream_quit() {
 }
 
 function livestream_pause() {
-    echo "ffconcat version 1.0" > ./loop.txt
-    echo "file pause.opus" >> ./loop.txt
-    echo "file loop.txt" >> ./loop.txt
     STATUS="$STATUS_PAUSED"
     FIFO_REPLY="Livestream paused."
 }
@@ -449,4 +449,3 @@ function livestream_main() {
 
 trap livestream_quit SIGTERM SIGINT
 livestream_main "$@"
-
