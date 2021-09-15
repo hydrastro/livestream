@@ -45,7 +45,7 @@ function livestream_send() {
             width=iw:height=${TEXT_BORDER_H}:t=fill,                           \
             drawtext=fontfile=${FONT_FILE}:fontsize=${TEXT_SIZE}:              \
             textfile=${TEXT_SOURCE}:reload=1:fontcolor=${TEXT_COLOR}:          \
-            x=(mod(${TEXT_SPEED}*n\,w+tw)-tw):y=h-line_h-10,                   \
+            x=(mod(${TEXT_SPEED}*n\\,w+tw)-tw):y=h-line_h-10,                   \
             pad=ceil(iw/2)*2:ceil(ih/2)*2"                                     \
         -vcodec libx264                                                        \
         -pix_fmt yuv420p                                                       \
@@ -164,9 +164,9 @@ function livestream_show_queue() {
         FIFO_REPLY="Queue is empty."
         return 1
     fi
-    FIFO_REPLY="Queue:\n"
+    FIFO_REPLY="Queue:\\n"
     for audio in "${QUEUE[@]}"; do
-        FIFO_REPLY+="$audio\n"
+        FIFO_REPLY+="$audio\\n"
     done
 }
 
@@ -334,18 +334,18 @@ function livestream_handle_command() {
 
 function livestream_help() {
     livestream_version
-    printf "usage: ./livestream [options]\n\n"
-    printf "Options:\n"
-    printf "  -h | --help          Displays this information.\n"
-    printf "  -v | --version       Displays script version.\n"
-    printf "  -s | --start         Starts the livestream.\n"
-    printf "  -q | --quit          Stops the livestream.\n"
-    printf "  -u | --status        Displays this livestream status.\n"
-    printf "  -p | --play <arg>    Plays a requested song if it's found.\n"
-    printf "  -w | --queue         Displays the queue.\n"
-    printf "  -r | --remove <arg>  Removes a requested song from the queue, if it's found.\n"
-    printf "  -a | --pause         Pauses the livestream.\n"
-    printf "  -e | --resume        Resumes the livestream.\n"
+    printf "usage: ./livestream [options]\\n\\n"
+    printf "Options:\\n"
+    printf "  -h | --help          Displays this information.\\n"
+    printf "  -v | --version       Displays script version.\\n"
+    printf "  -s | --start         Starts the livestream.\\n"
+    printf "  -q | --quit          Stops the livestream.\\n"
+    printf "  -u | --status        Displays this livestream status.\\n"
+    printf "  -p | --play <arg>    Plays a requested song if it's found.\\n"
+    printf "  -w | --queue         Displays the queue.\\n"
+    printf "  -r | --remove <arg>  Removes a requested song from the queue, if it's found.\\n"
+    printf "  -a | --pause         Pauses the livestream.\\n"
+    printf "  -e | --resume        Resumes the livestream.\\n"
 }
 
 function livestream_version() {
