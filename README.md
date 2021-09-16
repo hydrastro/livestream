@@ -172,4 +172,4 @@ If you want to help, Here below is a todo list.
 - [X] Music queue
 - [X] Pause
 - [ ] MP4 / webm (no js) stream
-- [ ] Proper logging (levels)
+- [X] Proper logging (levels)

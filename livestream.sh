@@ -20,10 +20,18 @@ AUDIO_DIR="./music"
 RTMP_SERVER="rtmp://${IP}:${PORT}/${STREAMKEY}"
 SCRIPT_VERSION="1.3"
 LOG_FILE="log"
-LOG_LEVEL="lmao"
+LOG_LEVEL_DEBUG="DEBUG"
+LOG_LEVEL_INFO="INFO"
+LOG_LEVEL_WARN="WARN"
+LOG_LEVEL_ERROR="ERROR"
+declare -A LOG_LEVELS
+LOG_LEVELS["$LOG_LEVEL_DEBUG"]=0
+LOG_LEVELS["$LOG_LEVEL_INFO"]=1
+LOG_LEVELS["$LOG_LEVEL_WARN"]=2
+LOG_LEVELS["$LOG_LEVEL_ERROR"]=3
+LOG_LEVEL="$LOG_LEVEL_WARN"
 FIFO_IN="in"
 FIFO_OUT="out"
-
 STATUS_STREAMING="STREAMING"
 STATUS_OFFLINE="OFFLINE"
 STATUS_PAUSED="PAUSED"
@@ -120,7 +128,8 @@ function livestream_queue_pop() {
 
 function livestream_load_queue() {
     if [[ "$STATUS" == "$STATUS_OFFLINE" ]]; then
-        livestream_log "Can't load queue: livestream is offline."
+        livestream_log "Can't load queue: livestream is offline."              \
+        "$LOG_LEVEL_WARN"
         exit 1
     fi
     echo "QUEUE" > "$FIFO_IN"
@@ -145,7 +154,8 @@ function livestream_get_next_audio() {
             NEXT_AUDIO=$RANDOM_AUDIO
         fi
             if [[ ! -f "$NEXT_AUDIO" ]]; then
-            livestream_log "Error: audio file ($NEXT_AUDIO) not found"
+            livestream_log "Error: audio file ($NEXT_AUDIO) not found"         \
+            "$LOG_LEVEL_ERROR"
             livestream_get_random_audio
             NEXT_AUDIO=$RANDOM_AUDIO
         fi
@@ -154,7 +164,8 @@ function livestream_get_next_audio() {
 
 function livestream_remove_queue_audio() {
     if [[ $# -lt 1 ]]; then
-        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"         \
+        "$LOG_LEVEL_ERROR"
         return 1
     fi
     similarity=${2:false}
@@ -164,7 +175,7 @@ function livestream_remove_queue_audio() {
         queue_audio=$1
     fi
     if [[ ! -f $queue_audio ]]; then
-        livestream_log "Requested audio not found."
+        livestream_log "Requested audio not found." "$LOG_LEVEL_ERROR"
         FIFO_REPLY="Requested audio not found."
         return 1
     else
@@ -184,12 +195,13 @@ function livestream_remove_queue_audio() {
 
 function livestream_play() {
     if [[ $# -lt 1 ]]; then
-        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"         \
+        "$LOG_LEVEL_ERROR"
         return 1
     fi
     audio=$(find . -iname "*$1*" -print | head -n1)
     if [[ ! -f $audio ]]; then
-        livestream_log "Requested audio not found."
+        livestream_log "Requested audio not found." "$LOG_LEVEL_ERROR"
         FIFO_REPLY="Requested audio not found."
     else
         QUEUE+=("$audio")
@@ -217,7 +229,8 @@ function livestream_get_random_audio() {
 
 function livestream_get_audio_length() {
     if [[ $# -lt 1 ]]; then
-        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"         \
+        "$LOG_LEVEL_ERROR"
         return 1
     fi
     AUDIO_LENGTH=$(ffprobe -v error -show_entries format=duration -of          \
@@ -226,14 +239,15 @@ function livestream_get_audio_length() {
 
 function livestream_update_audio_file() {
     if [[ $# -lt 2 ]]; then
-        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"         \
+        "$LOG_LEVEL_ERROR"
         return 1
     fi
     livestream_log "copying $1 into $2"
     if [[ -f "$1" ]]; then
         cp -f "$1" "./audio$2.opus"
     else
-        livestream_log "Error: audio file ($1) not found."
+        livestream_log "Error: audio file ($1) not found." "$LOG_LEVEL_ERROR"
     fi
 }
 
@@ -248,7 +262,8 @@ function livestream_get_video_text() {
 
 function livestream_update_video_text() {
     if [[ $# -lt 1 ]]; then
-        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"         \
+        "$LOG_LEVEL_ERROR"
         return 1
     fi
     echo "$1" > $TEXT_SOURCE
@@ -304,12 +319,23 @@ function livestream_resume() {
 
 function livestream_log() {
     if [[ $# -lt 1 ]]; then
-        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"         \
+        "$LOG_LEVEL_ERROR"
         return 1
     fi
-    if [[ "$LOG_LEVEL" != "NONE" ]]; then
-        echo "$(date +'[%Y-%m-%d %H:%M:%S]') $1" >> $LOG_FILE
+    message_log_level="$LOG_LEVEL_INFO"
+    if [[ $# -gt 1 ]]; then
+        message_log_level="$2"
     fi
+    if [[ ! ${LOG_LEVELS[$message_log_level]} ]]; then
+        livestream_log "Error: invalid log level" "$LOG_LEVEL_ERROR"
+        return 1
+    fi
+    if [[ "${LOG_LEVELS[$message_log_level]}" -lt "${LOG_LEVELS[$LOG_LEVEL]}"  \
+    ]]; then
+        return 2
+    fi
+    echo "$(date +'[%Y-%m-%d %H:%M:%S]') [$message_log_level] $1" >> $LOG_FILE
 }
 
 function livestream_print_status_message() {
@@ -328,7 +354,7 @@ function livestream_print_status_message() {
 
 function livestream_start() {
     if [ "$(pgrep 'livestream.sh' | wc -l)" -gt 2 ]; then
-        livestream_log "Livestream is already running."
+        livestream_log "Livestream is already running." "$LOG_LEVEL_WARN"
         echo "Livestream is already running."
         exit 1;
     fi
@@ -357,7 +383,8 @@ function livestream_guard() {
 
 function livestream_handle_command() {
     if [[ $# -lt 1 ]]; then
-        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"
+        livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"         \
+        "$LOG_LEVEL_ERROR"
         return 1
     fi
     full_command=$1
@@ -417,7 +444,7 @@ function livestream_version() {
 
 function livestream_send_command() {
     if [[ "$STATUS" == "$STATUS_OFFLINE" ]]; then
-        livestream_log "Livestream is not running."
+        livestream_log "Livestream is not running." "$LOG_LEVEL_WARN"
         echo "Livestream is not running."
         exit 1;
     fi
