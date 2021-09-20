@@ -100,7 +100,7 @@ function livestream_listen() {
         -hls_list_size 5
         -hls_allow_cache 1
         -hls_flags delete_segments
-        -flush_packets 1 stream.m3u8
+        -flush_packets 1 ./stream.m3u8
     )
     ffmpeg "${ffmpeg_options[@]}" &
 }
@@ -191,7 +191,7 @@ function livestream_remove_queue_audio() {
         return 1
     fi
     similarity=${2:false}
-    if [ "$similarity" = true ]; then
+    if [[ "$similarity" == true ]]; then
         queue_audio=$(find . -iname "*$1*" -print | head -n1)
     else
         queue_audio=$1
@@ -233,7 +233,7 @@ function livestream_play() {
 }
 
 function livestream_show_queue() {
-    if [ ${#QUEUE[@]} -eq 0 ]; then
+    if [[ ${#QUEUE[@]} -eq 0 ]]; then
         FIFO_REPLY="Queue is empty."
         return 1
     fi
@@ -293,16 +293,14 @@ function livestream_update_video_text() {
 
 function livestream_load_music() {
     livestream_log "Loading music files."
-    i=0
-    for entry in "$AUDIO_DIR"/*
-    do
-        MUSIC[ $i ]="$entry"
-        (( i++ ))
-    done < <(ls -ls)
+    MUSIC=()
+    for entry in "$AUDIO_DIR"/*; do
+        MUSIC+=("$entry")
+    done
 }
 
 function livestream_reset_video_file() {
-    cat <<EOF > stream.m3u8
+    cat <<EOF > ./stream.m3u8
 #EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-ALLOW-CACHE:YES
@@ -330,10 +328,12 @@ function livestream_pause() {
 }
 
 function livestream_create_loop_file() {
-    (echo "ffconcat version 1.0";                                              \
-    echo "file audio0.opus";                                                   \
-    echo "file audio1.opus";                                                   \
-    echo "file loop.txt") > ./loop.txt
+    cat <<EOF > ./loop.txt
+ffconcat version 1.0
+file audio0.opus
+file audio1.opus
+file loop.txt
+EOF
 }
 
 function livestream_resume() {
@@ -377,7 +377,7 @@ function livestream_print_status_message() {
 }
 
 function livestream_start() {
-    if [ "$(pgrep 'livestream.sh' | wc -l)" -gt 2 ]; then
+    if [[ "$(pgrep 'livestream.sh' | wc -l)" -gt 2 ]]; then
         livestream_log "Livestream is already running." "$LOG_LEVEL_WARN"
         echo "Livestream is already running."
         exit 1;
@@ -506,7 +506,7 @@ function livestream_send_command() {
 }
 
 function livestream_get_status() {
-    if [ "$(pgrep 'livestream.sh' | wc -l)" -gt 2 ]; then
+    if [[ "$(pgrep 'livestream.sh' | wc -l)" -gt 2 ]]; then
         echo "STATUS" > "$FIFO_IN"
         STATUS=$(cat "$FIFO_OUT")
     else
