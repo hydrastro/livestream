@@ -49,6 +49,7 @@ STATUS_OFFLINE="OFFLINE"
 STATUS_PAUSED="PAUSED"
 
 function livestream_send() {
+    local ffmpeg_options
     livestream_log "Starting streaming."
     ffmpeg_options=(
         -hide_banner
@@ -85,6 +86,7 @@ function livestream_send() {
 }
 
 function livestream_listen() {
+    local ffmpeg_options
     livestream_log "Starting listening server."
     ffmpeg_options=(
         -hide_banner
@@ -106,6 +108,7 @@ function livestream_listen() {
 }
 
 function livestream_manage_audio() {
+    local video_text sleep_time current_file_id
     livestream_get_random_audio
     video_text=$(livestream_get_video_text "$RANDOM_AUDIO")
     livestream_update_video_text "$video_text"
@@ -185,6 +188,7 @@ function livestream_get_next_audio() {
 }
 
 function livestream_remove_queue_audio() {
+    local similarity queue_audio
     if [[ $# -lt 1 ]]; then
         livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"         \
         "$LOG_LEVEL_ERROR"
@@ -216,6 +220,7 @@ function livestream_remove_queue_audio() {
 }
 
 function livestream_play() {
+    local audio
     if [[ $# -lt 1 ]]; then
         livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"         \
         "$LOG_LEVEL_ERROR"
@@ -233,6 +238,7 @@ function livestream_play() {
 }
 
 function livestream_show_queue() {
+    local audio
     if [[ ${#QUEUE[@]} -eq 0 ]]; then
         FIFO_REPLY="Queue is empty."
         return 1
@@ -274,6 +280,7 @@ function livestream_update_audio_file() {
 }
 
 function livestream_get_video_text() {
+    local audio_filename
     if [[ "$STATUS" == "$STATUS_PAUSED" ]]; then
         echo "${TEXT_PREFIX}nothing."
     else
@@ -292,6 +299,7 @@ function livestream_update_video_text() {
 }
 
 function livestream_load_music() {
+    local entry
     livestream_log "Loading music files."
     MUSIC=()
     for entry in "$AUDIO_DIR"/*; do
@@ -342,6 +350,7 @@ function livestream_resume() {
 }
 
 function livestream_log() {
+    local message_log_level
     if [[ $# -lt 1 ]]; then
         livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"         \
         "$LOG_LEVEL_ERROR"
@@ -406,6 +415,7 @@ function livestream_guard() {
 }
 
 function livestream_handle_command() {
+    local full_command command
     if [[ $# -lt 1 ]]; then
         livestream_log "Error: missing argument(s) for ${FUNCNAME[0]}"         \
         "$LOG_LEVEL_ERROR"
