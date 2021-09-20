@@ -302,14 +302,16 @@ function livestream_load_music() {
 }
 
 function livestream_reset_video_file() {
-    (echo "#EXTM3U";                                                           \
-    echo "#EXT-X-VERSION:3";                                                   \
-    echo "#EXT-X-ALLOW-CACHE:YES";                                             \
-    echo "#EXT-X-TARGETDURATION:6";                                            \
-    echo "#EXT-X-MEDIA-SEQUENCE:0";                                            \
-    echo "#EXTINF:5.544333,";                                                  \
-    echo "offline.ts";                                                         \
-    echo "#EXT-X-ENDLIST") > stream.m3u8
+    cat <<EOF > stream.m3u8
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-ALLOW-CACHE:YES
+#EXT-X-TARGETDURATION:6
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:5.544333,
+offline.ts
+#EXT-X-ENDLIST
+EOF
 }
 
 function livestream_quit() {
@@ -440,24 +442,27 @@ function livestream_handle_command() {
         *)
             ;;
     esac
-    (printf "%b\\n" "$FIFO_REPLY") > "$FIFO_OUT"
+    printf '%b\n' "$FIFO_REPLY" > "$FIFO_OUT"
 }
 
 function livestream_help() {
     livestream_version
-    printf "usage: ./livestream [options]\\n\\n"
-    printf "Options:\\n"
-    printf "  -h | (--)help          Displays this information.\\n"
-    printf "  -v | (--)version       Displays script version.\\n"
-    printf "  -s | (--)start         Starts the livestream.\\n"
-    printf "  -q | (--)quit          Stops the livestream.\\n"
-    printf "  -u | (--)status        Displays this livestream status.\\n"
-    printf "  -p | (--)play <arg>    Plays a song if it's found.\\n"
-    printf "  -w | (--)queue         Displays the queue.\\n"
-    printf "  -r | (--)remove <arg>  Removes a song from the queue.\\n"
-    printf "  -a | (--)pause         Pauses the livestream.\\n"
-    printf "  -e | (--)resume        Resumes the livestream.\\n"
-    printf "  -m | (--)pop           Pops the first element of the queue.\\n"
+    cat <<EOF
+usage: ./livestream [options]
+
+Options:
+  -h | (--)help          Displays this information.
+  -v | (--)version       Displays script version.
+  -s | (--)start         Starts the livestream.
+  -q | (--)quit          Stops the livestream.
+  -u | (--)status        Displays this livestream status.
+  -p | (--)play <arg>    Plays a song if it's found.
+  -w | (--)queue         Displays the queue.
+  -r | (--)remove <arg>  Removes a song from the queue.
+  -a | (--)pause         Pauses the livestream.
+  -e | (--)resume        Resumes the livestream.
+  -m | (--)pop           Pops the first element of the queue.
+EOF
 }
 
 function livestream_version() {
