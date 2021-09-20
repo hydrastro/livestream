@@ -50,55 +50,59 @@ STATUS_PAUSED="PAUSED"
 
 function livestream_send() {
     livestream_log "Starting streaming."
-    ffmpeg                                                                     \
-        -hide_banner                                                           \
-        -loglevel error                                                        \
-        -re                                                                    \
-        -stream_loop -1                                                        \
-        -f lavfi                                                               \
-        -i "movie=filename=${VIDEO_SOURCE}:loop=0, setpts=N/(FRAME_RATE*TB)"   \
-        -thread_queue_size 512                                                 \
-        -i ./loop.txt                                                          \
-        -map 0:v:0 -map 1:a:0                                                  \
-        -map_metadata:g 1:g                                                    \
-        -vf "drawbox=x=0:y=ih-${TEXT_BORDER_H}:color=${TEXT_BOX_COLOR}:        \
-            width=iw:height=${TEXT_BORDER_H}:t=fill,                           \
-            drawtext=fontfile=${FONT_FILE}:fontsize=${TEXT_SIZE}:              \
-            textfile=${TEXT_SOURCE}:reload=1:fontcolor=${TEXT_COLOR}:          \
-            x=(mod(${TEXT_SPEED}*n\\,w+tw)-tw):y=h-line_h-10,                  \
-            pad=ceil(iw/2)*2:ceil(ih/2)*2"                                     \
-        -vcodec libx264                                                        \
-        -pix_fmt yuv420p                                                       \
-        -preset ${QUALITY}                                                     \
-        -r ${FPS}                                                              \
-        -g $((FPS * 2))                                                        \
-        -b:v ${VIDEO_BITRATE}                                                  \
-        -acodec libmp3lame                                                     \
-        -ar 44100                                                              \
-        -threads 6                                                             \
-        -b:a ${AUDIO_BITRATE}                                                  \
-        -flush_packets 0                                                       \
-        -bufsize 512k                                                          \
-        -f flv "${RTMP_SERVER}" &
+    ffmpeg_options=(
+        -hide_banner
+        -loglevel error
+        -re
+        -stream_loop -1
+        -f lavfi
+        -i "movie=filename=${VIDEO_SOURCE}:loop=0, setpts=N/(FRAME_RATE*TB)"
+        -thread_queue_size 512
+        -i ./loop.txt
+        -map 0:v:0 -map 1:a:0
+        -map_metadata:g 1:g
+        -vf "drawbox=x=0:y=ih-${TEXT_BORDER_H}:color=${TEXT_BOX_COLOR}:
+            width=iw:height=${TEXT_BORDER_H}:t=fill,
+            drawtext=fontfile=${FONT_FILE}:fontsize=${TEXT_SIZE}:
+            textfile=${TEXT_SOURCE}:reload=1:fontcolor=${TEXT_COLOR}:
+            x=(mod(${TEXT_SPEED}*n\\,w+tw)-tw):y=h-line_h-10,
+            pad=ceil(iw/2)*2:ceil(ih/2)*2"
+        -vcodec libx264
+        -pix_fmt yuv420p
+        -preset ${QUALITY}
+        -r ${FPS}
+        -g $((FPS * 2))
+        -b:v ${VIDEO_BITRATE}
+        -acodec libmp3lame
+        -ar 44100
+        -threads 6
+        -b:a ${AUDIO_BITRATE}
+        -flush_packets 0
+        -bufsize 512k
+        -f flv "${RTMP_SERVER}"
+    )
+    ffmpeg "${ffmpeg_options[@]}" &
 }
 
 function livestream_listen() {
     livestream_log "Starting listening server."
-    ffmpeg                                                                     \
-        -hide_banner                                                           \
-        -loglevel error                                                        \
-        -listen 1                                                              \
-        -timeout -1                                                            \
-        -i "$RTMP_SERVER"                                                      \
-        -c:v copy                                                              \
-        -c:a copy                                                              \
-        -flags +cgop                                                           \
-        -g "$FPS"                                                              \
-        -hls_time 2                                                            \
-        -hls_list_size 5                                                       \
-        -hls_allow_cache 1                                                     \
-        -hls_flags delete_segments                                             \
-        -flush_packets 1 stream.m3u8 &
+    ffmpeg_options=(
+        -hide_banner
+        -loglevel error
+        -listen 1
+        -timeout -1
+        -i "$RTMP_SERVER"
+        -c:v copy
+        -c:a copy
+        -flags +cgop
+        -g "$FPS"
+        -hls_time 2
+        -hls_list_size 5
+        -hls_allow_cache 1
+        -hls_flags delete_segments
+        -flush_packets 1 stream.m3u8
+    )
+    ffmpeg "${ffmpeg_options[@]}" &
 }
 
 function livestream_manage_audio() {
@@ -117,8 +121,11 @@ function livestream_manage_audio() {
             sleep_time=$(echo | awk "{print $AUDIO_LENGTH}")
             video_text=$(livestream_get_video_text "pause.opus")
             livestream_update_video_text "$video_text"
-            [[ $current_file_id -eq 0 ]] && current_file_id=1 ||               \
-            current_file_id=0
+            if [[ $current_file_id -eq 0 ]]; then
+                current_file_id=1
+            else
+                current_file_id=0
+            fi
         else
             livestream_get_next_audio
             livestream_update_audio_file "$NEXT_AUDIO" $current_file_id
@@ -126,8 +133,11 @@ function livestream_manage_audio() {
             sleep_time=$(echo | awk "{print $AUDIO_LENGTH}")
             video_text=$(livestream_get_video_text "$NEXT_AUDIO")
             livestream_update_video_text "$video_text"
-            [[ $current_file_id -eq 0 ]] && current_file_id=1 ||               \
-            current_file_id=0
+            if [[ $current_file_id -eq 0 ]]; then
+                current_file_id=1
+            else
+                current_file_id=0
+            fi
         fi
     done
 }
@@ -546,5 +556,5 @@ function livestream_main() {
     esac
 }
 
-trap livestream_quit EXIT
+trap livestream_quit SIGTERM SIGKILL
 livestream_main "$@"
