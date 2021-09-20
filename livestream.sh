@@ -1,37 +1,37 @@
 #!/bin/bash
 
 # Server settings
-: ${IP:="127.0.0.1"}
-: ${PORT:="6645"}
-: ${STREAMKEY:="stream"}
+: "${IP:=127.0.0.1}"
+: "${PORT:=6645}"
+: "${STREAMKEY:=stream}"
 
 # Video settings
-: ${FPS:="30"}
-: ${QUALITY:="superfast"}
-: ${VIDEO_BITRATE:="1500k"}
-: ${VIDEO_SOURCE:="./video.mp4"}
+: "${FPS:=30}"
+: "${QUALITY:=superfast}"
+: "${VIDEO_BITRATE:=1500k}"
+: "${VIDEO_SOURCE:=./video.mp4}"
 
 # Video text settings
-: ${FONT_FILE:="./fonts/FSEX302.ttf"}
-: ${TEXT_SOURCE:="./now_playing.txt"}
-: ${TEXT_PREFIX:="Now playing: "}
-: ${TEXT_SPEED:="1"}
-: ${TEXT_SIZE:="18"}
-: ${TEXT_BOX_COLOR:="black@0.5"}
-: ${TEXT_COLOR:="white@0.8"}
-: ${TEXT_BORDER_H:="36"}
+: "${FONT_FILE:=./fonts/FSEX302.ttf}"
+: "${TEXT_SOURCE:=./now_playing.txt}"
+: "${TEXT_PREFIX:=Now playing: }"
+: "${TEXT_SPEED:=1}"
+: "${TEXT_SIZE:=18}"
+: "${TEXT_BOX_COLOR:=black@0.5}"
+: "${TEXT_COLOR:=white@0.8}"
+: "${TEXT_BORDER_H:=36}"
 
 # Audio settings
-: ${AUDIO_BITRATE:="128k"}
-: ${AUDIO_DIR:="./music"}
+: "${AUDIO_BITRATE:=128k}"
+: "${AUDIO_DIR:=./music}"
 
 # Logging settings
-: ${LOG_FILE:="log"}
-: ${LOG_LEVEL:="WARN"}
+: "${LOG_FILE:=log}"
+: "${LOG_LEVEL:=WARN}"
 
 # Advanced settings
-: ${FIFO_IN:="in"}
-: ${FIFO_OUT:="out"}
+: "${FIFO_IN:=in}"
+: "${FIFO_OUT:=out}"
 
 RTMP_SERVER="rtmp://${IP}:${PORT}/${STREAMKEY}"
 SCRIPT_VERSION="1.3"
@@ -69,14 +69,14 @@ function livestream_send() {
             pad=ceil(iw/2)*2:ceil(ih/2)*2"
         -vcodec libx264
         -pix_fmt yuv420p
-        -preset ${QUALITY}
-        -r ${FPS}
+        -preset "${QUALITY}"
+        -r "${FPS}"
         -g $((FPS * 2))
-        -b:v ${VIDEO_BITRATE}
+        -b:v "${VIDEO_BITRATE}"
         -acodec libmp3lame
         -ar 44100
         -threads 6
-        -b:a ${AUDIO_BITRATE}
+        -b:a "${AUDIO_BITRATE}"
         -flush_packets 0
         -bufsize 512k
         -f flv "${RTMP_SERVER}"
@@ -561,5 +561,5 @@ function livestream_main() {
     esac
 }
 
-trap livestream_quit SIGTERM SIGKILL
+trap livestream_quit SIGTERM
 livestream_main "$@"
