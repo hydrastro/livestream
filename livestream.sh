@@ -1,25 +1,40 @@
 #!/bin/bash
 
-IP="127.0.0.1"
-PORT="6645"
-STREAMKEY="stream"
-FPS="30"
-VIDEO_SOURCE="./video.mp4"
-FONT_FILE="./fonts/FSEX302.ttf"
-TEXT_PREFIX="Now playing: "
-TEXT_SPEED="1"
-TEXT_SIZE="18"
-TEXT_BOX_COLOR="black@0.5"
-TEXT_COLOR="white@0.8"
-TEXT_SOURCE="./now_playing.txt"
-TEXT_BORDER_H="36"
-QUALITY="superfast"
-VIDEO_BITRATE="1500k"
-AUDIO_BITRATE="128k"
-AUDIO_DIR="./music"
+# Server settings
+: ${IP:="127.0.0.1"}
+: ${PORT:="6645"}
+: ${STREAMKEY:="stream"}
+
+# Video settings
+: ${FPS:="30"}
+: ${QUALITY:="superfast"}
+: ${VIDEO_BITRATE:="1500k"}
+: ${VIDEO_SOURCE:="./video.mp4"}
+
+# Video text settings
+: ${FONT_FILE:="./fonts/FSEX302.ttf"}
+: ${TEXT_SOURCE:="./now_playing.txt"}
+: ${TEXT_PREFIX:="Now playing: "}
+: ${TEXT_SPEED:="1"}
+: ${TEXT_SIZE:="18"}
+: ${TEXT_BOX_COLOR:="black@0.5"}
+: ${TEXT_COLOR:="white@0.8"}
+: ${TEXT_BORDER_H:="36"}
+
+# Audio settings
+: ${AUDIO_BITRATE:="128k"}
+: ${AUDIO_DIR:="./music"}
+
+# Logging settings
+: ${LOG_FILE:="log"}
+: ${LOG_LEVEL:="WARN"}
+
+# Advanced settings
+: ${FIFO_IN:="in"}
+: ${FIFO_OUT:="out"}
+
 RTMP_SERVER="rtmp://${IP}:${PORT}/${STREAMKEY}"
 SCRIPT_VERSION="1.3"
-LOG_FILE="log"
 LOG_LEVEL_DEBUG="DEBUG"
 LOG_LEVEL_INFO="INFO"
 LOG_LEVEL_WARN="WARN"
@@ -29,9 +44,6 @@ LOG_LEVELS["$LOG_LEVEL_DEBUG"]=0
 LOG_LEVELS["$LOG_LEVEL_INFO"]=1
 LOG_LEVELS["$LOG_LEVEL_WARN"]=2
 LOG_LEVELS["$LOG_LEVEL_ERROR"]=3
-LOG_LEVEL="$LOG_LEVEL_WARN"
-FIFO_IN="in"
-FIFO_OUT="out"
 STATUS_STREAMING="STREAMING"
 STATUS_OFFLINE="OFFLINE"
 STATUS_PAUSED="PAUSED"
@@ -534,5 +546,5 @@ function livestream_main() {
     esac
 }
 
-trap livestream_quit SIGTERM SIGINT
+trap livestream_quit EXIT
 livestream_main "$@"
