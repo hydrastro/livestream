@@ -110,7 +110,7 @@ function livestream_manage_audio() {
     video_text=$(livestream_get_video_text "$RANDOM_AUDIO")
     livestream_update_video_text "$video_text"
     livestream_update_audio_file "$RANDOM_AUDIO" 0
-    sleep_time=$(echo | awk "{printf $AUDIO_LENGTH}")
+    sleep_time="$AUDIO_LENGTH"
     current_file_id=1
     while true; do
         livestream_get_status
@@ -118,7 +118,7 @@ function livestream_manage_audio() {
             livestream_update_audio_file "pause.opus" $current_file_id
             sleep "$sleep_time"
             livestream_get_audio_length "pause.opus"
-            sleep_time=$(echo | awk "{print $AUDIO_LENGTH}")
+            sleep_time="$AUDIO_LENGTH"
             video_text=$(livestream_get_video_text "pause.opus")
             livestream_update_video_text "$video_text"
             if [[ $current_file_id -eq 0 ]]; then
@@ -130,7 +130,7 @@ function livestream_manage_audio() {
             livestream_get_next_audio
             livestream_update_audio_file "$NEXT_AUDIO" $current_file_id
             sleep "$sleep_time"
-            sleep_time=$(echo | awk "{print $AUDIO_LENGTH}")
+            sleep_time="$AUDIO_LENGTH"
             video_text=$(livestream_get_video_text "$NEXT_AUDIO")
             livestream_update_video_text "$video_text"
             if [[ $current_file_id -eq 0 ]]; then
