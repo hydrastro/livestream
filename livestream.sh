@@ -352,13 +352,13 @@ function livestream_log() {
 
 function livestream_print_status_message() {
     case "$STATUS" in
-        "$STATUS_STREAMING"             )
+        "$STATUS_STREAMING")
             echo "Livestream is online."
             ;;
-         "$STATUS_PAUSED"               )
+         "$STATUS_PAUSED")
             echo "Livestream is paused."
             ;;
-         "$STATUS_OFFLINE"              )
+         "$STATUS_OFFLINE")
             echo "Livestream is offline."
             ;;
     esac
@@ -403,31 +403,31 @@ function livestream_handle_command() {
     command=$(echo "$full_command" | head -n1 | awk '{print $1;}')
     FIFO_REPLY=""
     case "$command" in
-        "QUIT"                                                   )
+        "QUIT")
             livestream_quit
             ;;
-        "STATUS"                                                 )
+        "STATUS")
             FIFO_REPLY=$STATUS
             ;;
-        "PLAY"                                                   )
+        "PLAY")
             livestream_play "${full_command:5}"
             ;;
-        "QUEUE"                                                  )
+        "QUEUE")
             livestream_show_queue
             ;;
-        "REMOVE"                                                 )
+        "REMOVE")
             livestream_remove_queue_audio "${full_command:7}" true
             ;;
-        "PAUSE"                                                  )
+        "PAUSE")
             livestream_pause
             ;;
-        "RESUME"                                                 )
+        "RESUME")
             livestream_resume
             ;;
-        "POP"                                                    )
+        "POP")
             livestream_queue_pop
             ;;
-        *                                                        )
+        *)
             ;;
     esac
     (printf "%b\\n" "$FIFO_REPLY") > "$FIFO_OUT"
@@ -461,28 +461,28 @@ function livestream_send_command() {
         exit 1;
     fi
     case "$1" in
-        "QUIT"                                 )
+        "QUIT")
             echo "QUIT" > "$FIFO_IN"
             ;;
-        "STATUS"                               )
+        "STATUS")
             echo "STATUS" > "$FIFO_IN"
             ;;
-        "PLAY"                                 )
+        "PLAY")
             echo "PLAY" "${@:2}" > "$FIFO_IN"
             ;;
-        "QUEUE"                                )
+        "QUEUE")
             echo "QUEUE" > "$FIFO_IN"
             ;;
-        "REMOVE"                               )
+        "REMOVE")
             echo "REMOVE" "${@:2}" > "$FIFO_IN"
             ;;
-        "PAUSE"                                )
+        "PAUSE")
             echo "PAUSE" > "$FIFO_IN"
             ;;
-        "RESUME"                               )
+        "RESUME")
             echo "RESUME" > "$FIFO_IN"
             ;;
-        "POP"                                  )
+        "POP")
             echo "POP" > "$FIFO_IN"
             ;;
     esac
@@ -506,40 +506,40 @@ function livestream_main() {
     fi
     livestream_get_status
     case "$1" in
-        "-h" | "--help" | "help"                            )
+        "-h" | "--help" | "help")
             livestream_help
             ;;
-        "-v" | "--version" | "version"                      )
+        "-v" | "--version" | "version")
             livestream_version
             ;;
-        "-s" | "--start" | "start"                          )
+        "-s" | "--start" | "start")
             livestream_start
             ;;
-        "-q" | "--quit" | "quit"                            )
+        "-q" | "--quit" | "quit")
             livestream_quit
             ;;
-        "-u" | "--status" | "status"                        )
+        "-u" | "--status" | "status")
             livestream_print_status_message
             ;;
-        "-p" | "--play" | "play"                            )
+        "-p" | "--play" | "play")
             livestream_send_command "PLAY" "${@:2}"
             ;;
-        "-w" | "--queue" | "queue"                          )
+        "-w" | "--queue" | "queue")
             livestream_send_command "QUEUE"
             ;;
-        "-r" | "--remove" | "remove"                        )
+        "-r" | "--remove" | "remove")
             livestream_send_command "REMOVE" "${@:2}"
             ;;
-        "-a" | "--pause" | "pause"                          )
+        "-a" | "--pause" | "pause")
             livestream_send_command "PAUSE"
             ;;
-        "-e" | "--resume" | "resume"                        )
+        "-e" | "--resume" | "resume")
             livestream_send_command "RESUME"
             ;;
-        "-m" | "--pop" | "pop"                              )
+        "-m" | "--pop" | "pop")
             livestream_send_command "POP"
             ;;
-        *                                                   )
+        *)
             echo "Invalid argument(s). Type --help for help."
             exit 1
             ;;
