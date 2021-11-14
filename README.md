@@ -169,7 +169,9 @@ Please reveiw and clean your code with `shellcheck` before pushing it.
 If you want to help, Here below is a todo list.
 
 ## TODO
+- [ ] MP4 / webm (no js) stream
+- [ ] Commands regex
+- [ ] Playlists
 - [X] Music queue
 - [X] Pause
-- [ ] MP4 / webm (no js) stream
 - [X] Proper logging (levels)
